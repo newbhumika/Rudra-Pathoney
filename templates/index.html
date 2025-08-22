@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+	<div class="col-12 col-lg-6">
+		<div class="card bg-secondary-subtle shadow-sm h-100">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Top 10 Attacker IPs</h5>
+				<canvas id="chartTopIPs" height="200"></canvas>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-lg-6">
+		<div class="card bg-secondary-subtle shadow-sm h-100">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Attempts Over Time</h5>
+				<canvas id="chartAttempts" height="200"></canvas>
+			</div>
+		</div>
+	</div>
+	<div class="col-12">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Top Credentials</h5>
+				<canvas id="chartCreds" height="160"></canvas>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+	<!-- Session List -->
+	<div class="col-12 col-lg-4">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<h5 class="card-title mb-0">Active Sessions</h5>
+					<button class="btn btn-primary btn-sm" id="refresh-sessions">Refresh</button>
+				</div>
+				<div id="sessions-list">
+					<p class="text-muted">Loading sessions...</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Session Timeline -->
+	<div class="col-12 col-lg-8">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Session Timeline</h5>
+				<div id="session-timeline">
+					<p class="text-muted">Select a session to view timeline</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Attack Flow Visualization -->
+	<div class="col-12">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Attack Flow Visualization</h5>
+				<div id="attack-flow" style="height: 400px; border: 1px solid #666; border-radius: 4px;">
+					<p class="text-center text-muted mt-5">Select a session to view attack flow</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Command Analysis Modal -->
+<div class="modal fade" id="commandModal" tabindex="-1">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content bg-dark">
+			<div class="modal-header">
+				<h5 class="modal-title">Command Analysis</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<div id="command-analysis-content"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" rel="stylesheet">
+
+<script>
+(function(){
+	let currentSessionId = null;
+	let network = null;
+	
+	function qs(id){ return document.getElementById(id); }
+	
+	function loadSessions() {
+		fetch('/api/sessions').then(r => r.json()).then(data => {
+			const container = qs('sessions-list');
+			const sessions = data.sessions || [];
+			
+			if (sessions.length === 0) {
+				container.innerHTML = '<p class="text-muted">No active sessions found</p>';
+				return;
+			}
+			
+			container.innerHTML = sessions.map(session => `
+				<div class="session-item mb-2 p-2 border border-secondary rounded cursor-pointer" 
+					 onclick="loadSession('${session.session_id}')" 
+					 style="cursor: pointer;">
+					<div class="d-flex justify-content-between">
+						<strong><code>${session.session_id}</code></strong>
+						<span class="badge bg-secondary">${session.event_count} events</span>
+					</div>
+					<div class="small text-muted">
+						IP: ${session.attacker_ip || 'Unknown'}<br>
+						Duration: ${formatDuration(session.start_time, session.end_time)}
+					</div>
+				</div>
+			`).join('');
+		}).catch(e => {
+			qs('sessions-list').innerHTML = '<p class="text-danger">Error loading sessions</p>';
+			console.error('Error:', e);
+		});
+	}
+	
+	function loadSession(sessionId) {
+		currentSessionId = sessionId;
+		
+		// Load timeline
+		fetch(`/api/session/${sessionId}`).then(r => r.json()).then(data => {
+			if (data.error) {
+				qs('session-timeline').innerHTML = `<p class="text-danger">${data.error}</p>`;
+				return;
+			}
+			
+			const session = data.sessions[0];
+			renderTimeline(session);
+			
+			// Load attack flow
+			loadAttackFlow(sessionId);
+		});
+	}
+	
+	function renderTimeline(session) {
+		const container = qs('session-timeline');
+		
+		let html = `
+			<div class="mb-3">
+				<h6>Session: <code>${session.session_id}</code></h6>
+				<p class="text-muted">
+					IP: ${session.attacker_ip || 'Unknown'} | 
+					Events: ${session.total_events} | 
+					Duration: ${formatDuration(session.start_time, session.end_time)}
+				</p>
+			</div>
+		`;
+		
+		if (session.timeline && session.timeline.length > 0) {
+			html += '<div class="timeline">';
+			session.timeline.forEach((event, index) => {
+				const threatClass = event.analysis ? getThreatClass(event.analysis.threat_level) : '';
+				html += `
+					<div class="timeline-item mb-2 p-2 border-start border-3 ${threatClass}">
+						<div class="d-flex justify-content-between align-items-start">
+							<div class="flex-grow-1">
+								<small class="text-muted">${formatTime(event.timestamp)}</small>
+								<div class="mt-1">
+									<strong>${event.event_type || 'Unknown'}</strong>
+									${event.username ? ` | User: <code>${event.username}</code>` : ''}
+									${event.password ? ` | Pass: <code>${event.password}</code>` : ''}
+								</div>
+								${event.command ? `
+									<div class="mt-1">
+										<code class="text-warning">${event.command}</code>
+										<button class="btn btn-sm btn-outline-info ms-2" onclick="analyzeCommand('${event.command.replace(/'/g, "\\'")}', '${event.analysis ? JSON.stringify(event.analysis).replace(/'/g, "\\'") : ''}')">
+											Analyze
+										</button>
+									</div>
+								` : ''}
+							</div>
+							${event.analysis ? `
+								<span class="badge bg-${getThreatBadge(event.analysis.threat_level)} ms-2">
+									${event.analysis.threat_level}
+								</span>
+							` : ''}
+						</div>
+					</div>
+				`;
+			});
+			html += '</div>';
+		} else {
+			html += '<p class="text-muted">No timeline data available</p>';
+		}
+		
+		container.innerHTML = html;
+	}
+	
+	function loadAttackFlow(sessionId) {
+		fetch(`/api/session/${sessionId}/flow`).then(r => r.json()).then(data => {
+			if (data.error) {
+				qs('attack-flow').innerHTML = `<p class="text-center text-danger mt-5">${data.error}</p>`;
+				return;
+			}
+			
+			renderAttackFlow(data);
+		});
+	}
+	
+	function renderAttackFlow(flowData) {
+		const container = qs('attack-flow');
+		
+		if (!flowData.nodes || flowData.nodes.length === 0) {
+			container.innerHTML = '<p class="text-center text-muted mt-5">No attack flow data available</p>';
+			return;
+		}
+		
+		// Clear previous network
+		if (network) {
+			network.destroy();
+		}
+		
+		// Create nodes
+		const nodes = new vis.DataSet(flowData.nodes.map(node => ({
+			id: node.id,
+			label: node.label,
+			title: `${node.full_command}\nPurpose: ${node.purpose}\nThreat: ${node.threat_level}`,
+			color: getThreatColor(node.threat_level),
+			borderWidth: 2,
+			shape: 'box',
+			font: { color: '#ffffff' }
+		})));
+		
+		// Create edges
+		const edges = new vis.DataSet(flowData.edges.map(edge => ({
+			from: edge.from,
+			to: edge.to,
+			label: edge.label,
+			arrows: 'to',
+			color: '#666666',
+			font: { color: '#ffffff', size: 10 }
+		})));
+		
+		// Network options
+		const options = {
+			nodes: {
+				shape: 'box',
+				margin: 10,
+				shadow: true
+			},
+			edges: {
+				width: 2,
+				smooth: {
+					type: 'cubicBezier',
+					forceDirection: 'horizontal'
+				}
+			},
+			layout: {
+				hierarchical: {
+					direction: 'LR',
+					sortMethod: 'directed',
+					nodeSpacing: 150,
+					levelSeparation: 100
+				}
+			},
+			physics: false
+		};
+		
+		// Create network
+		network = new vis.Network(container, { nodes, edges }, options);
+		
+		// Add click handler for nodes
+		network.on('click', function(params) {
+			if (params.nodes.length > 0) {
+				const nodeId = params.nodes[0];
+				const node = flowData.nodes.find(n => n.id === nodeId);
+				if (node) {
+					analyzeCommand(node.full_command, JSON.stringify({
+						purpose: node.purpose,
+						threat_level: node.threat_level,
+						description: 'Command from attack flow'
+					}));
+				}
+			}
+		});
+	}
+	
+	// Global functions
+	window.loadSession = loadSession;
+	window.analyzeCommand = function(command, analysis) {
+		const modal = new bootstrap.Modal(qs('commandModal'));
+		const content = qs('command-analysis-content');
+		
+		let analysisObj = {};
+		try {
+			analysisObj = JSON.parse(analysis);
+		} catch (e) {
+			analysisObj = {};
+		}
+		
+		content.innerHTML = `
+			<div class="mb-3">
+				<h6>Command:</h6>
+				<code class="text-warning">${command}</code>
+			</div>
+			<div class="row">
+				<div class="col-md-4">
+					<strong>Purpose:</strong><br>
+					<span class="badge bg-info">${analysisObj.purpose || 'Unknown'}</span>
+				</div>
+				<div class="col-md-4">
+					<strong>Threat Level:</strong><br>
+					<span class="badge bg-${getThreatBadge(analysisObj.threat_level || 'Unknown')}">${analysisObj.threat_level || 'Unknown'}</span>
+				</div>
+				<div class="col-md-4">
+					<strong>Description:</strong><br>
+					<small>${analysisObj.description || 'No description available'}</small>
+				</div>
+			</div>
+		`;
+		
+		modal.show();
+	};
+	
+	// Utility functions
+	function formatTime(timestamp) {
+		return new Date(timestamp).toLocaleString();
+	}
+	
+	function formatDuration(start, end) {
+		const startTime = new Date(start);
+		const endTime = new Date(end);
+		const diff = endTime - startTime;
+		const minutes = Math.floor(diff / 60000);
+		const seconds = Math.floor((diff % 60000) / 1000);
+		return `${minutes}m ${seconds}s`;
+	}
+	
+	function getThreatClass(threatLevel) {
+		switch(threatLevel?.toLowerCase()) {
+			case 'high': return 'border-danger';
+			case 'medium': return 'border-warning';
+			case 'low': return 'border-success';
+			default: return 'border-secondary';
+		}
+	}
+	
+	function getThreatBadge(threatLevel) {
+		switch(threatLevel?.toLowerCase()) {
+			case 'high': return 'danger';
+			case 'medium': return 'warning';
+			case 'low': return 'success';
+			default: return 'secondary';
+		}
+	}
+	
+	function getThreatColor(threatLevel) {
+		switch(threatLevel?.toLowerCase()) {
+			case 'high': return '#dc3545';
+			case 'medium': return '#ffc107';
+			case 'low': return '#28a745';
+			default: return '#6c757d';
+		}
+	}
+	
+	// Event listeners
+	qs('refresh-sessions').addEventListener('click', loadSessions);
+	
+	// Initial load
+	loadSessions();
+	
+	// Auto-refresh every 30 seconds
+	setInterval(loadSessions, 30000);
+})();
+</script>
+
+<style>
+.timeline-item {
+	transition: all 0.2s ease;
+}
+.timeline-item:hover {
+	background-color: rgba(255,255,255,0.1);
+}
+.session-item:hover {
+	background-color: rgba(255,255,255,0.1);
+}
+.cursor-pointer {
+	cursor: pointer;
+}
+</style>
+{% endblock %}

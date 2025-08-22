@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4">
+	<!-- Threat Dashboard -->
+	<div class="col-12">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<h5 class="card-title mb-0">Threat Dashboard</h5>
+					<button class="btn btn-primary btn-sm" id="refresh-threats">Refresh</button>
+				</div>
+				<div class="row" id="threat-stats">
+					<div class="col-md-3">
+						<div class="text-center">
+							<h3 id="total-ips">-</h3>
+							<p class="text-muted">IPs Monitored</p>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="text-center">
+							<h3 id="total-events">-</h3>
+							<p class="text-muted">Total Events</p>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="text-center">
+							<h3 id="active-alerts">-</h3>
+							<p class="text-muted">Active Alerts</p>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="text-center">
+							<h3 id="avg-threat-score">-</h3>
+							<p class="text-muted">Avg Threat Score</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Top Threats Table -->
+	<div class="col-12 col-lg-8">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Top Threats by Score</h5>
+				<div class="table-responsive">
+					<table class="table table-dark table-striped">
+						<thead>
+							<tr>
+								<th>IP Address</th>
+								<th>Threat Score</th>
+								<th>Events</th>
+								<th>Login Attempts</th>
+								<th>Commands</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody id="threats-table">
+							<tr><td colspan="6" class="text-center">Loading threats...</td></tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Current Alerts -->
+	<div class="col-12 col-lg-4">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Predictive Alerts</h5>
+				<div id="alerts-container">
+					<p class="text-muted">Loading alerts...</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Threat Analysis Modal -->
+	<div class="modal fade" id="threatModal" tabindex="-1">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content bg-dark">
+				<div class="modal-header">
+					<h5 class="modal-title">Threat Analysis: <span id="modal-ip"></span></h5>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-md-6">
+							<h6>Behavioral Data</h6>
+							<div id="behavior-data"></div>
+						</div>
+						<div class="col-md-6">
+							<h6>AI Analysis</h6>
+							<div id="ai-analysis"></div>
+						</div>
+					</div>
+					<div class="row mt-3">
+						<div class="col-12">
+							<h6>Threat Intelligence</h6>
+							<div id="threat-intel"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+(function(){
+	function qs(id){ return document.getElementById(id); }
+	
+	function updateThreatStats(data) {
+		qs('total-ips').textContent = data.total_ips_monitored || 0;
+		qs('total-events').textContent = data.total_events || 0;
+		qs('active-alerts').textContent = (data.current_alerts || []).length;
+		
+		const threats = data.top_threats || [];
+		const avgScore = threats.length > 0 ? 
+			Math.round(threats.reduce((sum, t) => sum + t.threat_score, 0) / threats.length) : 0;
+		qs('avg-threat-score').textContent = avgScore;
+	}
+	
+	function updateThreatsTable(threats) {
+		const tbody = qs('threats-table');
+		if (threats.length === 0) {
+			tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No threats detected</td></tr>';
+			return;
+		}
+		
+		tbody.innerHTML = threats.map(threat => `
+			<tr>
+				<td><code>${threat.ip}</code></td>
+				<td>
+					<span class="badge bg-${threat.threat_score > 70 ? 'danger' : threat.threat_score > 40 ? 'warning' : 'success'}">
+						${threat.threat_score}
+					</span>
+				</td>
+				<td>${threat.total_events}</td>
+				<td>${threat.login_attempts}</td>
+				<td>${threat.unique_commands}</td>
+				<td>
+					<button class="btn btn-sm btn-outline-info" onclick="analyzeThreat('${threat.ip}')">
+						Analyze
+					</button>
+				</td>
+			</tr>
+		`).join('');
+	}
+	
+	function updateAlerts(alerts) {
+		const container = qs('alerts-container');
+		if (alerts.length === 0) {
+			container.innerHTML = '<p class="text-muted">No active alerts</p>';
+			return;
+		}
+		
+		container.innerHTML = alerts.map(alert => `
+			<div class="alert alert-${alert.severity === 'high' ? 'danger' : alert.severity === 'medium' ? 'warning' : 'info'} alert-sm">
+				<strong>${alert.type.replace('_', ' ').toUpperCase()}</strong><br>
+				<small>${alert.message}</small>
+			</div>
+		`).join('');
+	}
+	
+	function refreshThreats() {
+		fetch('/api/threat/dashboard').then(r => r.json()).then(data => {
+			updateThreatStats(data);
+			updateThreatsTable(data.top_threats || []);
+			updateAlerts(data.current_alerts || []);
+		}).catch(e => console.error('Error loading threats:', e));
+	}
+	
+	// Global function for threat analysis
+	window.analyzeThreat = function(ip) {
+		qs('modal-ip').textContent = ip;
+		
+		// Load behavioral data
+		fetch(`/api/threat/behavior/${ip}`).then(r => r.json()).then(data => {
+			qs('behavior-data').innerHTML = `
+				<p><strong>Total Events:</strong> ${data.total_events || 0}</p>
+				<p><strong>Login Attempts:</strong> ${data.login_attempts || 0}</p>
+				<p><strong>Unique Commands:</strong> ${(data.unique_commands || []).length}</p>
+				<p><strong>Threat Score:</strong> ${data.threat_score || 0}</p>
+				<p><strong>First Seen:</strong> ${new Date(data.first_seen * 1000).toLocaleString()}</p>
+				<p><strong>Last Seen:</strong> ${new Date(data.last_seen * 1000).toLocaleString()}</p>
+			`;
+		});
+		
+		// Load AI analysis
+		fetch(`/api/threat/analysis/${ip}`).then(r => r.json()).then(data => {
+			if (data.error) {
+				qs('ai-analysis').innerHTML = `<p class="text-danger">${data.error}</p>`;
+			} else {
+				qs('ai-analysis').innerHTML = `
+					<p><strong>Threat Level:</strong> <span class="badge bg-${data.threat_level === 'Critical' ? 'danger' : data.threat_level === 'High' ? 'warning' : 'success'}">${data.threat_level || 'Unknown'}</span></p>
+					<p><strong>Attack Type:</strong> ${data.attack_type || 'Unknown'}</p>
+					<p><strong>Immediate Actions:</strong> ${data.immediate_actions || 'None specified'}</p>
+				`;
+			}
+		});
+		
+		// Load threat intelligence
+		fetch(`/api/threat/intel/${ip}`).then(r => r.json()).then(data => {
+			if (data.error) {
+				qs('threat-intel').innerHTML = `<p class="text-muted">${data.error}</p>`;
+			} else {
+				let intelHtml = '<div class="row">';
+				if (data.sources.virustotal) {
+					intelHtml += `
+						<div class="col-md-6">
+							<h6>VirusTotal</h6>
+							<p><strong>Malicious:</strong> ${data.sources.virustotal.malicious || 0}</p>
+							<p><strong>Suspicious:</strong> ${data.sources.virustotal.suspicious || 0}</p>
+						</div>
+					`;
+				}
+				if (data.sources.abuseipdb) {
+					intelHtml += `
+						<div class="col-md-6">
+							<h6>AbuseIPDB</h6>
+							<p><strong>Abuse Score:</strong> ${data.sources.abuseipdb.abuse_confidence || 0}%</p>
+							<p><strong>Country:</strong> ${data.sources.abuseipdb.country || 'Unknown'}</p>
+						</div>
+					`;
+				}
+				intelHtml += '</div>';
+				qs('threat-intel').innerHTML = intelHtml;
+			}
+		});
+		
+		// Show modal
+		new bootstrap.Modal(qs('threatModal')).show();
+	};
+	
+	// Event listeners
+	qs('refresh-threats').addEventListener('click', refreshThreats);
+	
+	// Initial load
+	refreshThreats();
+	
+	// Auto-refresh every 30 seconds
+	setInterval(refreshThreats, 30000);
+})();
+</script>
+{% endblock %}

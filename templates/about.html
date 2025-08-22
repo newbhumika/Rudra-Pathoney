@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card bg-secondary-subtle shadow-sm">
+	<div class="card-body">
+		<h4 class="mb-3">About</h4>
+		<p>This lightweight dashboard visualizes Cowrie honeypot activity. It tails logs from <code>docker logs -f cowrie</code> or local files in <code>./cowrie/log/</code> and stores parsed events in SQLite.</p>
+		<ul>
+			<li><b>Run</b>: <code>python3 app.py</code> then open <code>http://localhost:5000</code>.</li>
+			<li><b>Env vars</b>: <code>INGEST_FROM</code> (auto|docker|files|none), <code>COWRIE_DOCKER_NAME</code>, <code>COWRIE_LOG_DIR</code>.</li>
+			<li><b>CSV</b>: Export filtered logs via the Logs page.</li>
+		</ul>
+		<p>Built with Flask, Bootstrap, Chart.js, and DataTables.</p>
+	</div>
+</div>
+{% endblock %}

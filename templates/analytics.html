@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex align-items-end gap-2 mb-3">
+	<div>
+		<label class="form-label">Since</label>
+		<select class="form-select form-select-sm" id="analytics-hours">
+			<option value="24" selected>Last 24h</option>
+			<option value="1">Last 1h</option>
+			<option value="6">Last 6h</option>
+			<option value="168">Last 7d</option>
+			<option value="720">Last 30d</option>
+			<option value="">All</option>
+		</select>
+	</div>
+	<button class="btn btn-primary btn-sm" id="refresh-analytics">Refresh</button>
+</div>
+
+<div class="row g-4">
+	<div class="col-12 col-lg-6">
+		<div class="card bg-secondary-subtle shadow-sm h-100">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Top 10 Attacker IPs</h5>
+				<canvas id="chartTopIPs" height="200"></canvas>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-lg-6">
+		<div class="card bg-secondary-subtle shadow-sm h-100">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Attempts Over Time</h5>
+				<canvas id="chartAttempts" height="200"></canvas>
+			</div>
+		</div>
+	</div>
+	<div class="col-12">
+		<div class="card bg-secondary-subtle shadow-sm">
+			<div class="card-body">
+				<h5 class="card-title mb-3">Top Credentials</h5>
+				<canvas id="chartCreds" height="160"></canvas>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

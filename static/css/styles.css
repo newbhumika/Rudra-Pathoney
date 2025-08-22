@@ -1,0 +1,12 @@
+body {
+	background-color: #121212;
+}
+.card {
+	border: 1px solid rgba(255,255,255,0.1);
+}
+.navbar-brand {
+	font-weight: 700;
+}
+.table thead th {
+	border-bottom-color: rgba(255,255,255,0.2) !important;
+}
