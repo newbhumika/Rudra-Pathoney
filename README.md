@@ -93,9 +93,25 @@ The app will be available at:
 ---
 
 ## 📂 Additional Resources  
-- Project PPT & UI screenshots: [Google Drive Link](https://drive.google.com/drive/folders/1yIs9KfKWY7Tw48aPzEZ5vN1Vs8XN0Ix0?usp=drive_link)  
+- Project PPT & UI screenshots: [Google Drive Link](https://drive.google.com/drive/folders/1yIs9KfKWY7Tw48aPzEZ5vN1Vs8XN0Ix0?usp=drive_link)
+
+  ---
+  ## UI/UX Images
+![WhatsApp Image 2025-08-22 at 04 57 13_c423efe5](https://github.com/user-attachments/assets/7c88eb3a-d2e5-4d62-a1f9-f20ec1ed0ec2)
+![WhatsApp Image 2025-08-22 at 05 12 14_37218298](https://github.com/user-attachments/assets/c91b29af-be6f-4e83-a36c-79eca3885919)
+![WhatsApp Image 2025-08-22 at 05 12 36_da452794](https://github.com/user-attachments/assets/5b75a004-57c8-4299-b59e-e4fac2df41b3)
+![WhatsApp Image 2025-08-22 at 05 14 40_1fec7a58](https://github.com/user-attachments/assets/63b0ca8a-114d-4998-8c72-37f3b9deabc3)
+![WhatsApp Image 2025-08-22 at 05 15 20_567753b8](https://github.com/user-attachments/assets/82214f1b-60a0-4b79-951a-07d133902b2e)
+![WhatsApp Image 2025-08-22 at 05 15 53_1274c52c](https://github.com/user-attachments/assets/b0bde7d7-af47-491f-95b3-acf4e117885a)
+![WhatsApp Image 2025-08-22 at 05 20 11_85e7182d](https://github.com/user-attachments/assets/46b17cf8-260a-4f46-98ef-5d8b73cdfc3f)
+![WhatsApp Image 2025-08-22 at 05 20 11_41edc1ab](https://github.com/user-attachments/assets/ec1672cb-9b81-4b8c-8738-f2dc4a14a417)
+![WhatsApp Image 2025-08-22 at 05 20 12_f5fb8ac3](https://github.com/user-attachments/assets/35cdbabc-fa34-4412-a44b-0c67ec5cafe2)
+![WhatsApp Image 2025-08-22 at 05 20 13_e2da596f](https://github.com/user-attachments/assets/8f42590f-6092-43d1-97f1-57482181e423)
+![WhatsApp Image 2025-08-22 at 05 20 13_0d54a22c](https://github.com/user-attachments/assets/5b908437-8eeb-4c04-8304-b75910bcd6b5)
+![WhatsApp Image 2025-08-22 at 05 20 14_0dd96c29](https://github.com/user-attachments/assets/357777e0-3eee-44a4-9030-00617b1bfbca)
 
 ---
+
 
 ## 👨‍💻 Team Rudra  
 This project was developed by **Team Rudra** (4 members).  
