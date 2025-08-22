@@ -5,10 +5,17 @@ A honeypot project built by **Team Rudra** (4 members) to capture and analyze ma
 ---
 
 ## 📌 Problem Statement  
-Cybersecurity threats are increasing every day. Organizations need ways to detect and analyze attacks proactively. A **honeypot** is a security mechanism that creates a decoy system to lure attackers, capture their activities, and study their behavior for better defense.  
+Cyberattacks are growing in scale and sophistication; traditional defenses are often reactive.
+Networks face threats like reconnaissance, automated bots, and credential theft that go undetected.
+Conventional honeypots lack adaptability, realistic simulation, and structured logging, limiting actionable intelligence.
+Smart Honeypot System:
+Dynamically exposes select services to attract attackers.
+Logs all interactions in a structured format.
+Simulates realistic service banners and responses.
+Provides insights for ethical hacking, threat analysis, and proactive defense.
+Transforms attacks into learning opportunities, helping organizations stay ahead of evolving cyber threats.  
 
 ---
-
 ## 🛠️ Tech Stack  
 - **Backend:** Python, Flask  
 - **Frontend:** HTML, CSS, JavaScript, Bootstrap  
@@ -92,3 +99,7 @@ The app will be available at:
 
 ## 👨‍💻 Team Rudra  
 This project was developed by **Team Rudra** (4 members).  
+Nikhil Dubey
+Swarnav Das
+Puja Chakraborty
+Vaishali sharma
