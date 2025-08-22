@@ -5,15 +5,7 @@ A honeypot project built by **Team Rudra** (4 members) to capture and analyze ma
 ---
 
 ## 📌 Problem Statement  
-Cyberattacks are growing in scale and sophistication; traditional defenses are often reactive.
-Networks face threats like reconnaissance, automated bots, and credential theft that go undetected.
-Conventional honeypots lack adaptability, realistic simulation, and structured logging, limiting actionable intelligence.
-Smart Honeypot System:
-Dynamically exposes select services to attract attackers.
-Logs all interactions in a structured format.
-Simulates realistic service banners and responses.
-Provides insights for ethical hacking, threat analysis, and proactive defense.
-Transforms attacks into learning opportunities, helping organizations stay ahead of evolving cyber threats.  
+Design a system that behaves like a vulnerable target (honeypot) to trap and log unauthorized intrusion attempts, creating a dashboard to analyze attacker behavior.
 
 ---
 ## 🛠️ Tech Stack  
