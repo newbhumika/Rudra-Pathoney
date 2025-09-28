@@ -1,38 +1,113 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark" id="html-theme">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Cowrie Honeypot Dashboard</title>
+	<title>Rudra Honeypot Dashboard</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 	<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 </head>
-<body class="bg-dark text-light">
-	<nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
+<body class="bg-gradient-dark text-light">
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-primary shadow-lg">
 		<div class="container-fluid">
-			<a class="navbar-brand" href="/">Honeypot GUI</a>
-			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbars" aria-controls="navbars" aria-expanded="false" aria-label="Toggle navigation">
+			<a class="navbar-brand fw-bold d-flex align-items-center" href="/">
+				<i class="fas fa-shield-alt text-danger me-2"></i>
+				<span class="brand-text">Rudra Honeypot</span>
+			</a>
+			<button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbars" aria-controls="navbars" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbars">
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
-					<li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
-					<li class="nav-item"><a class="nav-link" href="/logs">Logs</a></li>
-					<li class="nav-item"><a class="nav-link" href="/analytics">Analytics</a></li>
-					<li class="nav-item"><a class="nav-link" href="/map">Map</a></li>
-					<li class="nav-item"><a class="nav-link" href="/insights">AI Insights</a></li>
-					<li class="nav-item"><a class="nav-link" href="/threat-hunting">Threat Hunting</a></li>
-					<li class="nav-item"><a class="nav-link" href="/session-replay">Session Replay</a></li>
-					<li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/">
+							<i class="fas fa-tachometer-alt me-1"></i>Dashboard
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/logs">
+							<i class="fas fa-list-alt me-1"></i>Logs
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/analytics">
+							<i class="fas fa-chart-bar me-1"></i>Analytics
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/map">
+							<i class="fas fa-globe me-1"></i>Map
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/insights">
+							<i class="fas fa-brain me-1"></i>AI Insights
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/threat-hunting">
+							<i class="fas fa-search me-1"></i>Threat Hunting
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/session-replay">
+							<i class="fas fa-play-circle me-1"></i>Session Replay
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link d-flex align-items-center" href="/about">
+							<i class="fas fa-info-circle me-1"></i>About
+						</a>
+					</li>
 				</ul>
+				<div class="d-flex align-items-center">
+					<span class="badge bg-success me-2">
+						<i class="fas fa-circle me-1"></i>Live
+					</span>
+					<!-- Theme Toggle Button -->
+					<button class="btn btn-outline-light btn-sm me-2" id="theme-toggle" type="button" title="Toggle Dark/Light Mode">
+						<i class="fas fa-moon" id="theme-icon"></i>
+					</button>
+					<div class="dropdown">
+						<button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+							<i class="fas fa-cog me-1"></i>Settings
+						</button>
+						<ul class="dropdown-menu dropdown-menu-end">
+							<li><a class="dropdown-item" href="#"><i class="fas fa-download me-2"></i>Export Data</a></li>
+							<li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i>Notifications</a></li>
+							<li><hr class="dropdown-divider"></li>
+							<li><a class="dropdown-item" href="#"><i class="fas fa-question-circle me-2"></i>Help</a></li>
+						</ul>
+					</div>
+				</div>
 			</div>
 		</div>
 	</nav>
 
-	<main class="container my-4">
+	<main class="container-fluid px-4 py-4">
 		{% block content %}{% endblock %}
 	</main>
+
+	<footer class="bg-dark border-top border-secondary mt-5 py-4">
+		<div class="container-fluid">
+			<div class="row align-items-center">
+				<div class="col-md-6">
+					<p class="mb-0 text-muted">
+						<i class="fas fa-shield-alt text-danger me-1"></i>
+						Rudra Honeypot Dashboard - Advanced Threat Detection & Analysis
+					</p>
+				</div>
+				<div class="col-md-6 text-md-end">
+					<small class="text-muted">
+						Last updated: <span id="last-update">--</span>
+					</small>
+				</div>
+			</div>
+		</div>
+	</footer>
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -40,5 +115,49 @@
 	<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 	<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 	<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+	
+	<script>
+		// Update last update time
+		document.getElementById('last-update').textContent = new Date().toLocaleString();
+		
+		// Theme Toggle Functionality
+		(function() {
+			const themeToggle = document.getElementById('theme-toggle');
+			const themeIcon = document.getElementById('theme-icon');
+			const htmlElement = document.getElementById('html-theme');
+			
+			// Get saved theme or default to dark
+			const savedTheme = localStorage.getItem('theme') || 'dark';
+			
+			// Apply saved theme on page load
+			function applyTheme(theme) {
+				htmlElement.setAttribute('data-bs-theme', theme);
+				document.body.className = theme === 'dark' ? 'bg-gradient-dark text-light' : 'bg-gradient-light text-dark';
+				
+				// Update icon
+				if (theme === 'dark') {
+					themeIcon.className = 'fas fa-moon';
+					themeToggle.title = 'Switch to Light Mode';
+				} else {
+					themeIcon.className = 'fas fa-sun';
+					themeToggle.title = 'Switch to Dark Mode';
+				}
+				
+				// Save theme preference
+				localStorage.setItem('theme', theme);
+			}
+			
+			// Initialize theme
+			applyTheme(savedTheme);
+			
+			// Toggle theme on button click
+			themeToggle.addEventListener('click', function() {
+				const currentTheme = htmlElement.getAttribute('data-bs-theme');
+				const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+				applyTheme(newTheme);
+			});
+		})();
+	</script>
 </body>
 </html>
+
