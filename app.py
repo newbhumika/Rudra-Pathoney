@@ -1258,3 +1258,4 @@ if __name__ == "__main__":
 	os.makedirs(os.path.join(os.path.dirname(__file__), "static", "js"), exist_ok=True)
 	os.makedirs(os.path.join(os.path.dirname(__file__), "static", "css"), exist_ok=True)
 	app.run(host="0.0.0.0", port=5000, debug=True)
+
