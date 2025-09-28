@@ -1,63 +1,160 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row g-4">
-	<!-- Threat Dashboard -->
+<!-- Header Section -->
+<div class="row mb-4">
 	<div class="col-12">
-		<div class="card bg-secondary-subtle shadow-sm">
+		<div class="d-flex justify-content-between align-items-center">
+			<div>
+				<h1 class="text-gradient mb-2">
+					<i class="fas fa-search text-danger me-2"></i>
+					Threat Hunting
+				</h1>
+				<p class="text-muted mb-0">Advanced threat detection, behavioral analysis, and predictive security intelligence</p>
+			</div>
+			<div class="d-flex align-items-center gap-3">
+				<span class="badge bg-danger">
+					<i class="fas fa-shield-alt me-1"></i>Active Monitoring
+				</span>
+				<button class="btn btn-primary" id="refresh-threats">
+					<i class="fas fa-sync-alt me-1"></i>Refresh
+				</button>
+				<button class="btn btn-outline-secondary" onclick="exportThreats()">
+					<i class="fas fa-download me-1"></i>Export
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Threat Dashboard -->
+<div class="row g-4 mb-4">
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card text-center animate-fade-in">
 			<div class="card-body">
-				<div class="d-flex justify-content-between align-items-center mb-3">
-					<h5 class="card-title mb-0">Threat Dashboard</h5>
-					<button class="btn btn-primary btn-sm" id="refresh-threats">Refresh</button>
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-globe text-primary fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-primary" id="total-ips">-</h3>
+						<small class="text-muted">IPs Monitored</small>
+					</div>
 				</div>
-				<div class="row" id="threat-stats">
-					<div class="col-md-3">
-						<div class="text-center">
-							<h3 id="total-ips">-</h3>
-							<p class="text-muted">IPs Monitored</p>
-						</div>
-					</div>
-					<div class="col-md-3">
-						<div class="text-center">
-							<h3 id="total-events">-</h3>
-							<p class="text-muted">Total Events</p>
-						</div>
-					</div>
-					<div class="col-md-3">
-						<div class="text-center">
-							<h3 id="active-alerts">-</h3>
-							<p class="text-muted">Active Alerts</p>
-						</div>
-					</div>
-					<div class="col-md-3">
-						<div class="text-center">
-							<h3 id="avg-threat-score">-</h3>
-							<p class="text-muted">Avg Threat Score</p>
-						</div>
-					</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
 				</div>
 			</div>
 		</div>
 	</div>
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.1s;">
+			<div class="card-body">
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-exclamation-triangle text-warning fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-warning" id="total-events">-</h3>
+						<small class="text-muted">Total Events</small>
+					</div>
+				</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-warning" role="progressbar" style="width: 60%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.2s;">
+			<div class="card-body">
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-danger bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-bell text-danger fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-danger" id="active-alerts">-</h3>
+						<small class="text-muted">Active Alerts</small>
+					</div>
+				</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-danger" role="progressbar" style="width: 85%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.3s;">
+			<div class="card-body">
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-chart-line text-info fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-info" id="avg-threat-score">-</h3>
+						<small class="text-muted">Avg Threat Score</small>
+					</div>
+				</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-info" role="progressbar" style="width: 45%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 
+<!-- Main Content Row -->
+<div class="row g-4">
 	<!-- Top Threats Table -->
 	<div class="col-12 col-lg-8">
-		<div class="card bg-secondary-subtle shadow-sm">
-			<div class="card-body">
-				<h5 class="card-title mb-3">Top Threats by Score</h5>
+		<div class="card animate-fade-in" style="animation-delay: 0.4s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-list text-danger me-2"></i>
+					Top Threats by Score
+				</h5>
+				<div class="d-flex gap-2">
+					<button class="btn btn-sm btn-outline-secondary" onclick="filterThreats('high')">
+						<i class="fas fa-filter me-1"></i>High Risk
+					</button>
+					<button class="btn btn-sm btn-outline-secondary" onclick="filterThreats('all')">
+						<i class="fas fa-list me-1"></i>All
+					</button>
+				</div>
+			</div>
+			<div class="card-body p-0">
 				<div class="table-responsive">
-					<table class="table table-dark table-striped">
-						<thead>
+					<table class="table table-dark table-hover mb-0">
+						<thead class="table-dark">
 							<tr>
-								<th>IP Address</th>
-								<th>Threat Score</th>
-								<th>Events</th>
-								<th>Login Attempts</th>
-								<th>Commands</th>
-								<th>Actions</th>
+								<th>
+									<i class="fas fa-globe me-1"></i>IP Address
+								</th>
+								<th class="text-center">
+									<i class="fas fa-shield-alt me-1"></i>Threat Score
+								</th>
+								<th class="text-center">
+									<i class="fas fa-exclamation-triangle me-1"></i>Events
+								</th>
+								<th class="text-center">
+									<i class="fas fa-key me-1"></i>Login Attempts
+								</th>
+								<th class="text-center">
+									<i class="fas fa-terminal me-1"></i>Commands
+								</th>
+								<th class="text-center">
+									<i class="fas fa-cog me-1"></i>Actions
+								</th>
 							</tr>
 						</thead>
 						<tbody id="threats-table">
-							<tr><td colspan="6" class="text-center">Loading threats...</td></tr>
+							<tr>
+								<td colspan="6" class="text-center py-5">
+									<div class="spinner-border text-primary" role="status">
+										<span class="visually-hidden">Loading...</span>
+									</div>
+									<p class="mt-2 text-muted">Loading threat data...</p>
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
@@ -67,40 +164,21 @@
 
 	<!-- Current Alerts -->
 	<div class="col-12 col-lg-4">
-		<div class="card bg-secondary-subtle shadow-sm">
-			<div class="card-body">
-				<h5 class="card-title mb-3">Predictive Alerts</h5>
-				<div id="alerts-container">
-					<p class="text-muted">Loading alerts...</p>
-				</div>
+		<div class="card animate-fade-in" style="animation-delay: 0.5s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-bell text-warning me-2"></i>
+					Predictive Alerts
+				</h5>
+				<span class="badge bg-warning" id="alerts-count">0</span>
 			</div>
-		</div>
-	</div>
-
-	<!-- Threat Analysis Modal -->
-	<div class="modal fade" id="threatModal" tabindex="-1">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content bg-dark">
-				<div class="modal-header">
-					<h5 class="modal-title">Threat Analysis: <span id="modal-ip"></span></h5>
-					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-				</div>
-				<div class="modal-body">
-					<div class="row">
-						<div class="col-md-6">
-							<h6>Behavioral Data</h6>
-							<div id="behavior-data"></div>
+			<div class="card-body">
+				<div id="alerts-container">
+					<div class="text-center py-3">
+						<div class="spinner-border spinner-border-sm text-primary" role="status">
+							<span class="visually-hidden">Loading...</span>
 						</div>
-						<div class="col-md-6">
-							<h6>AI Analysis</h6>
-							<div id="ai-analysis"></div>
-						</div>
-					</div>
-					<div class="row mt-3">
-						<div class="col-12">
-							<h6>Threat Intelligence</h6>
-							<div id="threat-intel"></div>
-						</div>
+						<p class="mt-2 text-muted small">Loading alerts...</p>
 					</div>
 				</div>
 			</div>
@@ -108,8 +186,88 @@
 	</div>
 </div>
 
+<!-- Threat Analysis Modal -->
+<div class="modal fade" id="threatModal" tabindex="-1">
+	<div class="modal-dialog modal-xl">
+		<div class="modal-content bg-dark">
+			<div class="modal-header border-secondary">
+				<h5 class="modal-title">
+					<i class="fas fa-search text-danger me-2"></i>
+					Threat Analysis: <span id="modal-ip" class="font-monospace"></span>
+				</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<div class="row g-4">
+					<div class="col-12 col-lg-6">
+						<div class="card bg-transparent border-secondary">
+							<div class="card-header">
+								<h6 class="mb-0">
+									<i class="fas fa-chart-line text-info me-2"></i>
+									Behavioral Data
+								</h6>
+							</div>
+							<div class="card-body" id="behavior-data">
+								<div class="text-center py-3">
+									<div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+									<p class="mt-2 text-muted small">Loading behavioral data...</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<div class="card bg-transparent border-secondary">
+							<div class="card-header">
+								<h6 class="mb-0">
+									<i class="fas fa-brain text-warning me-2"></i>
+									AI Analysis
+								</h6>
+							</div>
+							<div class="card-body" id="ai-analysis">
+								<div class="text-center py-3">
+									<div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+									<p class="mt-2 text-muted small">Loading AI analysis...</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-12">
+						<div class="card bg-transparent border-secondary">
+							<div class="card-header">
+								<h6 class="mb-0">
+									<i class="fas fa-shield-alt text-success me-2"></i>
+									Threat Intelligence
+								</h6>
+							</div>
+							<div class="card-body" id="threat-intel">
+								<div class="text-center py-3">
+									<div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+									<p class="mt-2 text-muted small">Loading threat intelligence...</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer border-secondary">
+				<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+					<i class="fas fa-times me-1"></i>Close
+				</button>
+				<button type="button" class="btn btn-danger" onclick="blockThreat()">
+					<i class="fas fa-ban me-1"></i>Block IP
+				</button>
+				<button type="button" class="btn btn-primary" onclick="exportThreatReport()">
+					<i class="fas fa-download me-1"></i>Export Report
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 <script>
 (function(){
+	'use strict';
+	
 	function qs(id){ return document.getElementById(id); }
 	
 	function updateThreatStats(data) {
@@ -126,24 +284,35 @@
 	function updateThreatsTable(threats) {
 		const tbody = qs('threats-table');
 		if (threats.length === 0) {
-			tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No threats detected</td></tr>';
+			tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No threats detected</td></tr>';
 			return;
 		}
 		
 		tbody.innerHTML = threats.map(threat => `
-			<tr>
-				<td><code>${threat.ip}</code></td>
+			<tr class="threat-row" data-threat-score="${threat.threat_score}">
 				<td>
-					<span class="badge bg-${threat.threat_score > 70 ? 'danger' : threat.threat_score > 40 ? 'warning' : 'success'}">
+					<div class="d-flex align-items-center">
+						<i class="fas fa-globe text-primary me-2"></i>
+						<code class="font-monospace">${threat.ip}</code>
+					</div>
+				</td>
+				<td class="text-center">
+					<span class="badge bg-${threat.threat_score > 70 ? 'danger' : threat.threat_score > 40 ? 'warning' : 'success'} fs-6">
 						${threat.threat_score}
 					</span>
 				</td>
-				<td>${threat.total_events}</td>
-				<td>${threat.login_attempts}</td>
-				<td>${threat.unique_commands}</td>
-				<td>
-					<button class="btn btn-sm btn-outline-info" onclick="analyzeThreat('${threat.ip}')">
-						Analyze
+				<td class="text-center">
+					<span class="badge bg-info">${threat.total_events}</span>
+				</td>
+				<td class="text-center">
+					<span class="badge bg-warning">${threat.login_attempts}</span>
+				</td>
+				<td class="text-center">
+					<span class="badge bg-secondary">${threat.unique_commands}</span>
+				</td>
+				<td class="text-center">
+					<button class="btn btn-sm btn-outline-primary" onclick="analyzeThreat('${threat.ip}')">
+						<i class="fas fa-search me-1"></i>Analyze
 					</button>
 				</td>
 			</tr>
@@ -152,87 +321,227 @@
 	
 	function updateAlerts(alerts) {
 		const container = qs('alerts-container');
+		const countBadge = qs('alerts-count');
+		
+		countBadge.textContent = alerts.length;
+		countBadge.className = `badge bg-${alerts.length > 0 ? 'danger' : 'secondary'}`;
+		
 		if (alerts.length === 0) {
-			container.innerHTML = '<p class="text-muted">No active alerts</p>';
+			container.innerHTML = `
+				<div class="text-center py-3">
+					<i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+					<p class="text-muted mb-0">No active alerts</p>
+					<small class="text-muted">All systems secure</small>
+				</div>
+			`;
 			return;
 		}
 		
 		container.innerHTML = alerts.map(alert => `
-			<div class="alert alert-${alert.severity === 'high' ? 'danger' : alert.severity === 'medium' ? 'warning' : 'info'} alert-sm">
-				<strong>${alert.type.replace('_', ' ').toUpperCase()}</strong><br>
-				<small>${alert.message}</small>
+			<div class="alert alert-${alert.severity === 'high' ? 'danger' : alert.severity === 'medium' ? 'warning' : 'info'} alert-sm mb-2">
+				<div class="d-flex">
+					<div class="flex-shrink-0">
+						<i class="fas fa-${alert.severity === 'high' ? 'exclamation-triangle' : 'info-circle'}"></i>
+					</div>
+					<div class="flex-grow-1 ms-2">
+						<strong class="d-block">${alert.type.replace('_', ' ').toUpperCase()}</strong>
+						<small>${alert.message}</small>
+					</div>
+				</div>
 			</div>
 		`).join('');
 	}
 	
-	function refreshThreats() {
-		fetch('/api/threat/dashboard').then(r => r.json()).then(data => {
+	async function refreshThreats() {
+		try {
+			const response = await fetch('/api/threat/dashboard');
+			const data = await response.json();
+			
 			updateThreatStats(data);
 			updateThreatsTable(data.top_threats || []);
 			updateAlerts(data.current_alerts || []);
-		}).catch(e => console.error('Error loading threats:', e));
+			
+			if (typeof showNotification === 'function') {
+				showNotification('Threat data updated', 'success', 2000);
+			}
+		} catch (error) {
+			console.error('Error loading threats:', error);
+			if (typeof showNotification === 'function') {
+				showNotification('Error loading threat data', 'danger', 3000);
+			}
+		}
 	}
 	
 	// Global function for threat analysis
-	window.analyzeThreat = function(ip) {
+	window.analyzeThreat = async function(ip) {
 		qs('modal-ip').textContent = ip;
 		
-		// Load behavioral data
-		fetch(`/api/threat/behavior/${ip}`).then(r => r.json()).then(data => {
-			qs('behavior-data').innerHTML = `
-				<p><strong>Total Events:</strong> ${data.total_events || 0}</p>
-				<p><strong>Login Attempts:</strong> ${data.login_attempts || 0}</p>
-				<p><strong>Unique Commands:</strong> ${(data.unique_commands || []).length}</p>
-				<p><strong>Threat Score:</strong> ${data.threat_score || 0}</p>
-				<p><strong>First Seen:</strong> ${new Date(data.first_seen * 1000).toLocaleString()}</p>
-				<p><strong>Last Seen:</strong> ${new Date(data.last_seen * 1000).toLocaleString()}</p>
-			`;
-		});
+		// Show modal immediately
+		const modal = new bootstrap.Modal(qs('threatModal'));
+		modal.show();
 		
-		// Load AI analysis
-		fetch(`/api/threat/analysis/${ip}`).then(r => r.json()).then(data => {
-			if (data.error) {
-				qs('ai-analysis').innerHTML = `<p class="text-danger">${data.error}</p>`;
+		try {
+			// Load behavioral data
+			const behaviorResponse = await fetch(`/api/threat/behavior/${ip}`);
+			const behaviorData = await behaviorResponse.json();
+			
+			qs('behavior-data').innerHTML = `
+				<div class="row g-3">
+					<div class="col-6">
+						<div class="text-center">
+							<h4 class="text-primary mb-1">${behaviorData.total_events || 0}</h4>
+							<small class="text-muted">Total Events</small>
+						</div>
+					</div>
+					<div class="col-6">
+						<div class="text-center">
+							<h4 class="text-warning mb-1">${behaviorData.login_attempts || 0}</h4>
+							<small class="text-muted">Login Attempts</small>
+						</div>
+					</div>
+					<div class="col-6">
+						<div class="text-center">
+							<h4 class="text-info mb-1">${(behaviorData.unique_commands || []).length}</h4>
+							<small class="text-muted">Unique Commands</small>
+						</div>
+					</div>
+					<div class="col-6">
+						<div class="text-center">
+							<h4 class="text-danger mb-1">${behaviorData.threat_score || 0}</h4>
+							<small class="text-muted">Threat Score</small>
+						</div>
+					</div>
+				</div>
+				<hr class="my-3">
+				<div class="row">
+					<div class="col-12">
+						<p><strong>First Seen:</strong> <span class="text-muted">${new Date(behaviorData.first_seen * 1000).toLocaleString()}</span></p>
+						<p><strong>Last Seen:</strong> <span class="text-muted">${new Date(behaviorData.last_seen * 1000).toLocaleString()}</span></p>
+					</div>
+				</div>
+			`;
+		} catch (error) {
+			qs('behavior-data').innerHTML = `<div class="alert alert-danger">Error loading behavioral data: ${error.message}</div>`;
+		}
+		
+		try {
+			// Load AI analysis
+			const aiResponse = await fetch(`/api/threat/analysis/${ip}`);
+			const aiData = await aiResponse.json();
+			
+			if (aiData.error) {
+				qs('ai-analysis').innerHTML = `<div class="alert alert-danger">${aiData.error}</div>`;
 			} else {
 				qs('ai-analysis').innerHTML = `
-					<p><strong>Threat Level:</strong> <span class="badge bg-${data.threat_level === 'Critical' ? 'danger' : data.threat_level === 'High' ? 'warning' : 'success'}">${data.threat_level || 'Unknown'}</span></p>
-					<p><strong>Attack Type:</strong> ${data.attack_type || 'Unknown'}</p>
-					<p><strong>Immediate Actions:</strong> ${data.immediate_actions || 'None specified'}</p>
+					<div class="mb-3">
+						<strong>Threat Level:</strong>
+						<span class="badge bg-${aiData.threat_level === 'Critical' ? 'danger' : aiData.threat_level === 'High' ? 'warning' : 'success'} ms-2">
+							${aiData.threat_level || 'Unknown'}
+						</span>
+					</div>
+					<div class="mb-3">
+						<strong>Attack Type:</strong>
+						<span class="text-muted ms-2">${aiData.attack_type || 'Unknown'}</span>
+					</div>
+					<div>
+						<strong>Immediate Actions:</strong>
+						<p class="text-muted mt-1">${aiData.immediate_actions || 'None specified'}</p>
+					</div>
 				`;
 			}
-		});
+		} catch (error) {
+			qs('ai-analysis').innerHTML = `<div class="alert alert-danger">Error loading AI analysis: ${error.message}</div>`;
+		}
 		
-		// Load threat intelligence
-		fetch(`/api/threat/intel/${ip}`).then(r => r.json()).then(data => {
-			if (data.error) {
-				qs('threat-intel').innerHTML = `<p class="text-muted">${data.error}</p>`;
+		try {
+			// Load threat intelligence
+			const intelResponse = await fetch(`/api/threat/intel/${ip}`);
+			const intelData = await intelResponse.json();
+			
+			if (intelData.error) {
+				qs('threat-intel').innerHTML = `<div class="alert alert-info">${intelData.error}</div>`;
 			} else {
-				let intelHtml = '<div class="row">';
-				if (data.sources.virustotal) {
+				let intelHtml = '<div class="row g-3">';
+				if (intelData.sources.virustotal) {
 					intelHtml += `
 						<div class="col-md-6">
-							<h6>VirusTotal</h6>
-							<p><strong>Malicious:</strong> ${data.sources.virustotal.malicious || 0}</p>
-							<p><strong>Suspicious:</strong> ${data.sources.virustotal.suspicious || 0}</p>
+							<div class="card bg-transparent border-info">
+								<div class="card-body text-center">
+									<h6 class="text-info">VirusTotal</h6>
+									<div class="row">
+										<div class="col-6">
+											<h5 class="text-danger">${intelData.sources.virustotal.malicious || 0}</h5>
+											<small>Malicious</small>
+										</div>
+										<div class="col-6">
+											<h5 class="text-warning">${intelData.sources.virustotal.suspicious || 0}</h5>
+											<small>Suspicious</small>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					`;
 				}
-				if (data.sources.abuseipdb) {
+				if (intelData.sources.abuseipdb) {
 					intelHtml += `
 						<div class="col-md-6">
-							<h6>AbuseIPDB</h6>
-							<p><strong>Abuse Score:</strong> ${data.sources.abuseipdb.abuse_confidence || 0}%</p>
-							<p><strong>Country:</strong> ${data.sources.abuseipdb.country || 'Unknown'}</p>
+							<div class="card bg-transparent border-warning">
+								<div class="card-body text-center">
+									<h6 class="text-warning">AbuseIPDB</h6>
+									<div class="row">
+										<div class="col-6">
+											<h5 class="text-warning">${intelData.sources.abuseipdb.abuse_confidence || 0}%</h5>
+											<small>Abuse Score</small>
+										</div>
+										<div class="col-6">
+											<h5 class="text-info">${intelData.sources.abuseipdb.country || 'Unknown'}</h5>
+											<small>Country</small>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					`;
 				}
 				intelHtml += '</div>';
 				qs('threat-intel').innerHTML = intelHtml;
 			}
+		} catch (error) {
+			qs('threat-intel').innerHTML = `<div class="alert alert-danger">Error loading threat intelligence: ${error.message}</div>`;
+		}
+	};
+	
+	// Global functions
+	window.filterThreats = function(filter) {
+		const rows = document.querySelectorAll('.threat-row');
+		rows.forEach(row => {
+			const score = parseInt(row.dataset.threatScore);
+			if (filter === 'high') {
+				row.style.display = score > 70 ? '' : 'none';
+			} else {
+				row.style.display = '';
+			}
 		});
-		
-		// Show modal
-		new bootstrap.Modal(qs('threatModal')).show();
+	};
+	
+	window.exportThreats = function() {
+		if (typeof showNotification === 'function') {
+			showNotification('Export feature coming soon', 'info', 3000);
+		}
+	};
+	
+	window.blockThreat = function() {
+		const ip = qs('modal-ip').textContent;
+		if (typeof showNotification === 'function') {
+			showNotification(`Blocking IP ${ip}...`, 'warning', 3000);
+		}
+	};
+	
+	window.exportThreatReport = function() {
+		if (typeof showNotification === 'function') {
+			showNotification('Exporting threat report...', 'info', 3000);
+		}
 	};
 	
 	// Event listeners
