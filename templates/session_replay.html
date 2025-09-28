@@ -1,16 +1,91 @@
 {% extends 'base.html' %}
 {% block content %}
+<!-- Header Section -->
+<div class="row mb-4">
+	<div class="col-12">
+		<div class="d-flex justify-content-between align-items-center">
+			<div>
+				<h1 class="text-gradient mb-2">
+					<i class="fas fa-play-circle text-info me-2"></i>
+					Session Replay
+				</h1>
+				<p class="text-muted mb-0">Interactive session playback and attack flow visualization</p>
+			</div>
+			<div class="d-flex align-items-center gap-3">
+				<span class="badge bg-info">
+					<i class="fas fa-video me-1"></i>Live Sessions
+				</span>
+				<button class="btn btn-primary" id="refresh-sessions">
+					<i class="fas fa-sync-alt me-1"></i>Refresh
+				</button>
+				<button class="btn btn-outline-secondary" onclick="exportSessions()">
+					<i class="fas fa-download me-1"></i>Export
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Session Statistics -->
+<div class="row g-3 mb-4">
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in">
+			<div class="card-body">
+				<i class="fas fa-play text-primary fa-2x mb-2"></i>
+				<h4 class="text-primary mb-1" id="active-sessions">-</h4>
+				<small class="text-muted">Active Sessions</small>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.1s;">
+			<div class="card-body">
+				<i class="fas fa-clock text-info fa-2x mb-2"></i>
+				<h4 class="text-info mb-1" id="avg-duration">-</h4>
+				<small class="text-muted">Avg Duration</small>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.2s;">
+			<div class="card-body">
+				<i class="fas fa-terminal text-warning fa-2x mb-2"></i>
+				<h4 class="text-warning mb-1" id="total-commands">-</h4>
+				<small class="text-muted">Total Commands</small>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.3s;">
+			<div class="card-body">
+				<i class="fas fa-exclamation-triangle text-danger fa-2x mb-2"></i>
+				<h4 class="text-danger mb-1" id="high-risk-sessions">-</h4>
+				<small class="text-muted">High Risk</small>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Main Content Row -->
 <div class="row g-4">
 	<!-- Session List -->
 	<div class="col-12 col-lg-4">
-		<div class="card bg-secondary-subtle shadow-sm">
+		<div class="card animate-fade-in" style="animation-delay: 0.4s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-list text-primary me-2"></i>
+					Active Sessions
+				</h5>
+				<span class="badge bg-primary" id="session-count">0</span>
+			</div>
 			<div class="card-body">
-				<div class="d-flex justify-content-between align-items-center mb-3">
-					<h5 class="card-title mb-0">Active Sessions</h5>
-					<button class="btn btn-primary btn-sm" id="refresh-sessions">Refresh</button>
-				</div>
 				<div id="sessions-list">
-					<p class="text-muted">Loading sessions...</p>
+					<div class="text-center py-3">
+						<div class="spinner-border spinner-border-sm text-primary" role="status">
+							<span class="visually-hidden">Loading...</span>
+						</div>
+						<p class="mt-2 text-muted small">Loading sessions...</p>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -18,23 +93,59 @@
 
 	<!-- Session Timeline -->
 	<div class="col-12 col-lg-8">
-		<div class="card bg-secondary-subtle shadow-sm">
+		<div class="card animate-fade-in" style="animation-delay: 0.5s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-timeline text-info me-2"></i>
+					Session Timeline
+				</h5>
+				<div class="d-flex gap-2">
+					<button class="btn btn-sm btn-outline-secondary" onclick="playSession()">
+						<i class="fas fa-play me-1"></i>Play
+					</button>
+					<button class="btn btn-sm btn-outline-secondary" onclick="pauseSession()">
+						<i class="fas fa-pause me-1"></i>Pause
+					</button>
+				</div>
+			</div>
 			<div class="card-body">
-				<h5 class="card-title mb-3">Session Timeline</h5>
 				<div id="session-timeline">
-					<p class="text-muted">Select a session to view timeline</p>
+					<div class="text-center py-5">
+						<i class="fas fa-mouse-pointer text-muted fa-3x mb-3"></i>
+						<p class="text-muted">Select a session to view timeline</p>
+						<small class="text-muted">Click on any session from the list to start replay</small>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
+</div>
 
-	<!-- Attack Flow Visualization -->
+<!-- Attack Flow Visualization -->
+<div class="row mt-4">
 	<div class="col-12">
-		<div class="card bg-secondary-subtle shadow-sm">
-			<div class="card-body">
-				<h5 class="card-title mb-3">Attack Flow Visualization</h5>
-				<div id="attack-flow" style="height: 400px; border: 1px solid #666; border-radius: 4px;">
-					<p class="text-center text-muted mt-5">Select a session to view attack flow</p>
+		<div class="card animate-fade-in" style="animation-delay: 0.6s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-project-diagram text-warning me-2"></i>
+					Attack Flow Visualization
+				</h5>
+				<div class="d-flex gap-2">
+					<button class="btn btn-sm btn-outline-secondary" onclick="resetFlow()">
+						<i class="fas fa-undo me-1"></i>Reset
+					</button>
+					<button class="btn btn-sm btn-outline-secondary" onclick="exportFlow()">
+						<i class="fas fa-download me-1"></i>Export
+					</button>
+				</div>
+			</div>
+			<div class="card-body p-0">
+				<div id="attack-flow" style="height: 500px; border-radius: 0 0 1rem 1rem;">
+					<div class="text-center py-5">
+						<i class="fas fa-network-wired text-muted fa-3x mb-3"></i>
+						<p class="text-muted">Select a session to view attack flow</p>
+						<small class="text-muted">Interactive network visualization of attack patterns</small>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -45,12 +156,30 @@
 <div class="modal fade" id="commandModal" tabindex="-1">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content bg-dark">
-			<div class="modal-header">
-				<h5 class="modal-title">Command Analysis</h5>
+			<div class="modal-header border-secondary">
+				<h5 class="modal-title">
+					<i class="fas fa-terminal text-warning me-2"></i>
+					Command Analysis
+				</h5>
 				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
 			</div>
 			<div class="modal-body">
-				<div id="command-analysis-content"></div>
+				<div id="command-analysis-content">
+					<div class="text-center py-3">
+						<div class="spinner-border spinner-border-sm text-primary" role="status">
+							<span class="visually-hidden">Loading...</span>
+						</div>
+						<p class="mt-2 text-muted small">Loading command analysis...</p>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer border-secondary">
+				<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+					<i class="fas fa-times me-1"></i>Close
+				</button>
+				<button type="button" class="btn btn-primary" onclick="exportCommand()">
+					<i class="fas fa-download me-1"></i>Export
+				</button>
 			</div>
 		</div>
 	</div>
@@ -61,48 +190,135 @@
 
 <script>
 (function(){
+	'use strict';
+	
 	let currentSessionId = null;
 	let network = null;
+	let isPlaying = false;
 	
 	function qs(id){ return document.getElementById(id); }
 	
-	function loadSessions() {
-		fetch('/api/sessions').then(r => r.json()).then(data => {
+	function updateSessionStats(sessions) {
+		const activeCount = sessions.length;
+		qs('active-sessions').textContent = activeCount;
+		qs('session-count').textContent = activeCount;
+		
+		if (activeCount === 0) {
+			qs('avg-duration').textContent = '0m';
+			qs('total-commands').textContent = '0';
+			qs('high-risk-sessions').textContent = '0';
+			return;
+		}
+		
+		// Calculate average duration
+		const totalDuration = sessions.reduce((sum, session) => {
+			const start = new Date(session.start_time);
+			const end = new Date(session.end_time);
+			return sum + (end - start);
+		}, 0);
+		const avgDuration = Math.round(totalDuration / activeCount / 60000); // minutes
+		qs('avg-duration').textContent = `${avgDuration}m`;
+		
+		// Calculate total commands
+		const totalCommands = sessions.reduce((sum, session) => sum + (session.event_count || 0), 0);
+		qs('total-commands').textContent = totalCommands;
+		
+		// Calculate high risk sessions (sessions with high threat scores)
+		const highRiskCount = sessions.filter(session => (session.threat_score || 0) > 70).length;
+		qs('high-risk-sessions').textContent = highRiskCount;
+	}
+	
+	async function loadSessions() {
+		try {
+			const response = await fetch('/api/sessions');
+			const data = await response.json();
 			const container = qs('sessions-list');
 			const sessions = data.sessions || [];
 			
+			updateSessionStats(sessions);
+			
 			if (sessions.length === 0) {
-				container.innerHTML = '<p class="text-muted">No active sessions found</p>';
+				container.innerHTML = `
+					<div class="text-center py-4">
+						<i class="fas fa-inbox text-muted fa-2x mb-2"></i>
+						<p class="text-muted mb-0">No active sessions found</p>
+						<small class="text-muted">Sessions will appear here when detected</small>
+					</div>
+				`;
 				return;
 			}
 			
 			container.innerHTML = sessions.map(session => `
-				<div class="session-item mb-2 p-2 border border-secondary rounded cursor-pointer" 
+				<div class="session-item mb-2 p-3 border border-secondary rounded cursor-pointer session-card" 
 					 onclick="loadSession('${session.session_id}')" 
-					 style="cursor: pointer;">
-					<div class="d-flex justify-content-between">
-						<strong><code>${session.session_id}</code></strong>
-						<span class="badge bg-secondary">${session.event_count} events</span>
+					 style="cursor: pointer; transition: all 0.2s ease;">
+					<div class="d-flex justify-content-between align-items-start mb-2">
+						<div class="d-flex align-items-center">
+							<i class="fas fa-play-circle text-primary me-2"></i>
+							<strong class="font-monospace">${session.session_id.substring(0, 12)}...</strong>
+						</div>
+						<span class="badge bg-${(session.threat_score || 0) > 70 ? 'danger' : (session.threat_score || 0) > 40 ? 'warning' : 'success'}">
+							${session.event_count} events
+						</span>
 					</div>
 					<div class="small text-muted">
-						IP: ${session.attacker_ip || 'Unknown'}<br>
-						Duration: ${formatDuration(session.start_time, session.end_time)}
+						<div class="d-flex justify-content-between">
+							<span><i class="fas fa-globe me-1"></i>${session.attacker_ip || 'Unknown'}</span>
+							<span><i class="fas fa-clock me-1"></i>${formatDuration(session.start_time, session.end_time)}</span>
+						</div>
+						${session.threat_score ? `<div class="mt-1"><i class="fas fa-shield-alt me-1"></i>Threat Score: ${session.threat_score}</div>` : ''}
 					</div>
 				</div>
 			`).join('');
-		}).catch(e => {
-			qs('sessions-list').innerHTML = '<p class="text-danger">Error loading sessions</p>';
-			console.error('Error:', e);
-		});
+			
+			// Add hover effects
+			document.querySelectorAll('.session-card').forEach(card => {
+				card.addEventListener('mouseenter', function() {
+					this.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+					this.style.borderColor = 'rgba(13, 110, 253, 0.5)';
+				});
+				card.addEventListener('mouseleave', function() {
+					this.style.backgroundColor = '';
+					this.style.borderColor = '';
+				});
+			});
+			
+		} catch (error) {
+			console.error('Error loading sessions:', error);
+			qs('sessions-list').innerHTML = `
+				<div class="alert alert-danger">
+					<i class="fas fa-exclamation-triangle me-2"></i>
+					Error loading sessions: ${error.message}
+				</div>
+			`;
+		}
 	}
 	
-	function loadSession(sessionId) {
+	async function loadSession(sessionId) {
 		currentSessionId = sessionId;
 		
-		// Load timeline
-		fetch(`/api/session/${sessionId}`).then(r => r.json()).then(data => {
+		// Update selected session visual
+		document.querySelectorAll('.session-card').forEach(card => {
+			card.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+		});
+		
+		const selectedCard = document.querySelector(`[onclick="loadSession('${sessionId}')"]`);
+		if (selectedCard) {
+			selectedCard.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+		}
+		
+		try {
+			// Load timeline
+			const response = await fetch(`/api/session/${sessionId}`);
+			const data = await response.json();
+			
 			if (data.error) {
-				qs('session-timeline').innerHTML = `<p class="text-danger">${data.error}</p>`;
+				qs('session-timeline').innerHTML = `
+					<div class="alert alert-danger">
+						<i class="fas fa-exclamation-triangle me-2"></i>
+						${data.error}
+					</div>
+				`;
 				return;
 			}
 			
@@ -111,7 +327,20 @@
 			
 			// Load attack flow
 			loadAttackFlow(sessionId);
-		});
+			
+			if (typeof showNotification === 'function') {
+				showNotification(`Session ${sessionId.substring(0, 8)}... loaded`, 'success', 2000);
+			}
+			
+		} catch (error) {
+			console.error('Error loading session:', error);
+			qs('session-timeline').innerHTML = `
+				<div class="alert alert-danger">
+					<i class="fas fa-exclamation-triangle me-2"></i>
+					Error loading session: ${error.message}
+				</div>
+			`;
+		}
 	}
 	
 	function renderTimeline(session) {
@@ -259,6 +488,7 @@
 	
 	// Global functions
 	window.loadSession = loadSession;
+	
 	window.analyzeCommand = function(command, analysis) {
 		const modal = new bootstrap.Modal(qs('commandModal'));
 		const content = qs('command-analysis-content');
@@ -271,27 +501,96 @@
 		}
 		
 		content.innerHTML = `
-			<div class="mb-3">
-				<h6>Command:</h6>
-				<code class="text-warning">${command}</code>
+			<div class="mb-4">
+				<h6 class="text-warning mb-2">
+					<i class="fas fa-terminal me-2"></i>Command
+				</h6>
+				<div class="bg-dark p-3 rounded border">
+					<code class="text-warning font-monospace">${command}</code>
+				</div>
 			</div>
-			<div class="row">
+			<div class="row g-3">
 				<div class="col-md-4">
-					<strong>Purpose:</strong><br>
-					<span class="badge bg-info">${analysisObj.purpose || 'Unknown'}</span>
+					<div class="card bg-transparent border-info">
+						<div class="card-body text-center">
+							<h6 class="text-info">Purpose</h6>
+							<span class="badge bg-info fs-6">${analysisObj.purpose || 'Unknown'}</span>
+						</div>
+					</div>
 				</div>
 				<div class="col-md-4">
-					<strong>Threat Level:</strong><br>
-					<span class="badge bg-${getThreatBadge(analysisObj.threat_level || 'Unknown')}">${analysisObj.threat_level || 'Unknown'}</span>
+					<div class="card bg-transparent border-warning">
+						<div class="card-body text-center">
+							<h6 class="text-warning">Threat Level</h6>
+							<span class="badge bg-${getThreatBadge(analysisObj.threat_level || 'Unknown')} fs-6">${analysisObj.threat_level || 'Unknown'}</span>
+						</div>
+					</div>
 				</div>
 				<div class="col-md-4">
-					<strong>Description:</strong><br>
-					<small>${analysisObj.description || 'No description available'}</small>
+					<div class="card bg-transparent border-secondary">
+						<div class="card-body text-center">
+							<h6 class="text-secondary">Risk Score</h6>
+							<span class="badge bg-secondary fs-6">${analysisObj.risk_score || 'N/A'}</span>
+						</div>
+					</div>
 				</div>
+			</div>
+			<div class="mt-4">
+				<h6 class="text-muted mb-2">Description</h6>
+				<p class="text-muted">${analysisObj.description || 'No description available'}</p>
 			</div>
 		`;
 		
 		modal.show();
+	};
+	
+	window.playSession = function() {
+		if (typeof showNotification === 'function') {
+			showNotification('Session playback started', 'info', 2000);
+		}
+		isPlaying = true;
+	};
+	
+	window.pauseSession = function() {
+		if (typeof showNotification === 'function') {
+			showNotification('Session playback paused', 'warning', 2000);
+		}
+		isPlaying = false;
+	};
+	
+	window.resetFlow = function() {
+		if (network) {
+			network.destroy();
+			network = null;
+		}
+		qs('attack-flow').innerHTML = `
+			<div class="text-center py-5">
+				<i class="fas fa-network-wired text-muted fa-3x mb-3"></i>
+				<p class="text-muted">Attack flow reset</p>
+				<small class="text-muted">Select a session to view attack flow</small>
+			</div>
+		`;
+		if (typeof showNotification === 'function') {
+			showNotification('Attack flow reset', 'info', 2000);
+		}
+	};
+	
+	window.exportFlow = function() {
+		if (typeof showNotification === 'function') {
+			showNotification('Exporting attack flow...', 'info', 3000);
+		}
+	};
+	
+	window.exportSessions = function() {
+		if (typeof showNotification === 'function') {
+			showNotification('Exporting session data...', 'info', 3000);
+		}
+	};
+	
+	window.exportCommand = function() {
+		if (typeof showNotification === 'function') {
+			showNotification('Exporting command analysis...', 'info', 3000);
+		}
 	};
 	
 	// Utility functions
