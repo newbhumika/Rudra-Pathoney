@@ -1,15 +1,270 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card bg-secondary-subtle shadow-sm">
-	<div class="card-body">
-		<h4 class="mb-3">About</h4>
-		<p>This lightweight dashboard visualizes Cowrie honeypot activity. It tails logs from <code>docker logs -f cowrie</code> or local files in <code>./cowrie/log/</code> and stores parsed events in SQLite.</p>
-		<ul>
-			<li><b>Run</b>: <code>python3 app.py</code> then open <code>http://localhost:5000</code>.</li>
-			<li><b>Env vars</b>: <code>INGEST_FROM</code> (auto|docker|files|none), <code>COWRIE_DOCKER_NAME</code>, <code>COWRIE_LOG_DIR</code>.</li>
-			<li><b>CSV</b>: Export filtered logs via the Logs page.</li>
-		</ul>
-		<p>Built with Flask, Bootstrap, Chart.js, and DataTables.</p>
+<!-- Header Section -->
+<div class="row mb-4">
+	<div class="col-12">
+		<div class="text-center">
+			<h1 class="text-gradient mb-3">
+				<i class="fas fa-shield-alt text-danger me-3"></i>
+				About Rudra Honeypot
+			</h1>
+			<p class="lead text-muted">Advanced threat detection and analysis platform for cybersecurity professionals</p>
+		</div>
+	</div>
+</div>
+
+<!-- Main Information -->
+<div class="row g-4 mb-4">
+	<div class="col-12 col-lg-8">
+		<div class="card animate-fade-in">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-info-circle text-primary me-2"></i>
+					Project Overview
+				</h5>
+			</div>
+			<div class="card-body">
+				<p class="mb-3">Rudra Honeypot is a comprehensive cybersecurity platform that provides real-time threat detection, behavioral analysis, and advanced security intelligence. Built with modern web technologies, it offers an intuitive interface for monitoring and analyzing potential security threats.</p>
+				
+				<div class="row g-3">
+					<div class="col-12 col-md-6">
+						<div class="d-flex align-items-start">
+							<div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+								<i class="fas fa-eye text-primary"></i>
+							</div>
+							<div>
+								<h6 class="mb-1">Real-time Monitoring</h6>
+								<small class="text-muted">Continuous threat detection and analysis</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6">
+						<div class="d-flex align-items-start">
+							<div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+								<i class="fas fa-brain text-success"></i>
+							</div>
+							<div>
+								<h6 class="mb-1">AI-Powered Analysis</h6>
+								<small class="text-muted">Machine learning threat intelligence</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6">
+						<div class="d-flex align-items-start">
+							<div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+								<i class="fas fa-chart-line text-warning"></i>
+							</div>
+							<div>
+								<h6 class="mb-1">Advanced Analytics</h6>
+								<small class="text-muted">Comprehensive reporting and insights</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6">
+						<div class="d-flex align-items-start">
+							<div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
+								<i class="fas fa-globe text-info"></i>
+							</div>
+							<div>
+								<h6 class="mb-1">Global Threat Map</h6>
+								<small class="text-muted">Geographic threat visualization</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="col-12 col-lg-4">
+		<div class="card animate-fade-in" style="animation-delay: 0.1s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-cogs text-warning me-2"></i>
+					Quick Setup
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="mb-3">
+					<h6 class="text-success">
+						<i class="fas fa-play me-1"></i>Run Application
+					</h6>
+					<code class="d-block bg-dark p-2 rounded">python3 app.py</code>
+					<small class="text-muted">Then open <a href="http://localhost:5000" class="text-primary">http://localhost:5000</a></small>
+				</div>
+				
+				<div class="mb-3">
+					<h6 class="text-info">
+						<i class="fas fa-envira me-1"></i>Environment Variables
+					</h6>
+					<ul class="list-unstyled small">
+						<li><code>INGEST_FROM</code> - auto|docker|files|none</li>
+						<li><code>COWRIE_DOCKER_NAME</code> - Docker container name</li>
+						<li><code>COWRIE_LOG_DIR</code> - Log directory path</li>
+					</ul>
+				</div>
+				
+				<div>
+					<h6 class="text-warning">
+						<i class="fas fa-download me-1"></i>Data Export
+					</h6>
+					<small class="text-muted">Export filtered logs via the Logs page</small>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Technology Stack -->
+<div class="row g-4 mb-4">
+	<div class="col-12">
+		<div class="card animate-fade-in" style="animation-delay: 0.2s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-code text-info me-2"></i>
+					Technology Stack
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row g-4">
+					<div class="col-12 col-md-6 col-lg-3">
+						<div class="text-center">
+							<div class="bg-primary bg-opacity-10 rounded-circle p-3 mx-auto mb-3" style="width: 80px; height: 80px;">
+								<i class="fas fa-server text-primary fa-2x"></i>
+							</div>
+							<h6>Backend</h6>
+							<p class="text-muted small mb-0">Flask, Python, SQLite</p>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-3">
+						<div class="text-center">
+							<div class="bg-success bg-opacity-10 rounded-circle p-3 mx-auto mb-3" style="width: 80px; height: 80px;">
+								<i class="fas fa-palette text-success fa-2x"></i>
+							</div>
+							<h6>Frontend</h6>
+							<p class="text-muted small mb-0">Bootstrap 5, HTML5, CSS3</p>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-3">
+						<div class="text-center">
+							<div class="bg-warning bg-opacity-10 rounded-circle p-3 mx-auto mb-3" style="width: 80px; height: 80px;">
+								<i class="fas fa-chart-bar text-warning fa-2x"></i>
+							</div>
+							<h6>Visualization</h6>
+							<p class="text-muted small mb-0">Chart.js, DataTables, Leaflet</p>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-3">
+						<div class="text-center">
+							<div class="bg-info bg-opacity-10 rounded-circle p-3 mx-auto mb-3" style="width: 80px; height: 80px;">
+								<i class="fas fa-shield-alt text-info fa-2x"></i>
+							</div>
+							<h6>Security</h6>
+							<p class="text-muted small mb-0">Honeypot, Threat Intel</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Features -->
+<div class="row g-4 mb-4">
+	<div class="col-12">
+		<div class="card animate-fade-in" style="animation-delay: 0.3s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-star text-warning me-2"></i>
+					Key Features
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row g-3">
+					<div class="col-12 col-md-6 col-lg-4">
+						<div class="d-flex align-items-center p-3 border border-secondary rounded">
+							<i class="fas fa-tachometer-alt text-primary fa-2x me-3"></i>
+							<div>
+								<h6 class="mb-1">Real-time Dashboard</h6>
+								<small class="text-muted">Live threat monitoring and metrics</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-4">
+						<div class="d-flex align-items-center p-3 border border-secondary rounded">
+							<i class="fas fa-list-alt text-success fa-2x me-3"></i>
+							<div>
+								<h6 class="mb-1">Detailed Logs</h6>
+								<small class="text-muted">Comprehensive attack logging and analysis</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-4">
+						<div class="d-flex align-items-center p-3 border border-secondary rounded">
+							<i class="fas fa-chart-line text-info fa-2x me-3"></i>
+							<div>
+								<h6 class="mb-1">Advanced Analytics</h6>
+								<small class="text-muted">Trend analysis and threat intelligence</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-4">
+						<div class="d-flex align-items-center p-3 border border-secondary rounded">
+							<i class="fas fa-globe text-warning fa-2x me-3"></i>
+							<div>
+								<h6 class="mb-1">Geographic Mapping</h6>
+								<small class="text-muted">Global threat source visualization</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-4">
+						<div class="d-flex align-items-center p-3 border border-secondary rounded">
+							<i class="fas fa-brain text-danger fa-2x me-3"></i>
+							<div>
+								<h6 class="mb-1">AI Insights</h6>
+								<small class="text-muted">Machine learning threat analysis</small>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-md-6 col-lg-4">
+						<div class="d-flex align-items-center p-3 border border-secondary rounded">
+							<i class="fas fa-play-circle text-primary fa-2x me-3"></i>
+							<div>
+								<h6 class="mb-1">Session Replay</h6>
+								<small class="text-muted">Interactive attack flow visualization</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Footer Information -->
+<div class="row">
+	<div class="col-12">
+		<div class="card animate-fade-in" style="animation-delay: 0.4s;">
+			<div class="card-body text-center">
+				<h5 class="text-gradient mb-3">
+					<i class="fas fa-shield-alt text-danger me-2"></i>
+					Rudra Honeypot Dashboard
+				</h5>
+				<p class="text-muted mb-3">Advanced Threat Detection & Analysis Platform</p>
+				<div class="d-flex justify-content-center gap-4">
+					<small class="text-muted">
+						<i class="fas fa-code me-1"></i>Version 2.0
+					</small>
+					<small class="text-muted">
+						<i class="fas fa-calendar me-1"></i>2024
+					</small>
+					<small class="text-muted">
+						<i class="fas fa-heart text-danger me-1"></i>Made with Security in Mind
+					</small>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 {% endblock %}
+
