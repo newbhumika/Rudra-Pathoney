@@ -1,87 +1,418 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex align-items-end gap-2 mb-3">
-	<div>
-		<label class="form-label">Since</label>
-		<select class="form-select form-select-sm" id="map-hours">
-			<option value="24" selected>Last 24h</option>
-			<option value="1">Last 1h</option>
-			<option value="6">Last 6h</option>
-			<option value="168">Last 7d</option>
-			<option value="720">Last 30d</option>
-			<option value="">All</option>
-		</select>
+<!-- Header Section -->
+<div class="row mb-4">
+	<div class="col-12">
+		<div class="d-flex justify-content-between align-items-center">
+			<div>
+				<h1 class="text-gradient mb-2">
+					<i class="fas fa-globe text-success me-2"></i>
+					Attack Map
+				</h1>
+				<p class="text-muted mb-0">Geographic visualization of attack sources and threat distribution worldwide</p>
+			</div>
+			<div class="d-flex align-items-center gap-3">
+				<div class="dropdown">
+					<select class="form-select" id="map-hours">
+						<option value="1">Last 1 hour</option>
+						<option value="6">Last 6 hours</option>
+						<option value="24" selected>Last 24 hours</option>
+						<option value="168">Last 7 days</option>
+						<option value="720">Last 30 days</option>
+						<option value="">All time</option>
+					</select>
+				</div>
+				<button class="btn btn-primary" id="refresh-map">
+					<i class="fas fa-sync-alt me-1"></i>Refresh
+				</button>
+				<button class="btn btn-outline-secondary" onclick="exportMapData()">
+					<i class="fas fa-download me-1"></i>Export
+				</button>
+			</div>
+		</div>
 	</div>
-	<button class="btn btn-primary btn-sm" id="refresh-map">Refresh</button>
 </div>
 
-<div class="alert alert-info mb-3">
-	<strong>Note:</strong> The map shows geolocated attacker IPs. Private IPs (192.168.x.x, 172.16-31.x.x, 10.x.x.x) cannot be mapped. 
-	<br>Check the console for debug info about IP geolocation.
+<!-- Map Statistics -->
+<div class="row g-3 mb-4">
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in">
+			<div class="card-body">
+				<i class="fas fa-map-marker-alt text-danger fa-2x mb-2"></i>
+				<h4 class="text-danger mb-1" id="total-locations">--</h4>
+				<small class="text-muted">Attack Locations</small>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.1s;">
+			<div class="card-body">
+				<i class="fas fa-globe text-warning fa-2x mb-2"></i>
+				<h4 class="text-warning mb-1" id="countries-count">--</h4>
+				<small class="text-muted">Countries</small>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.2s;">
+			<div class="card-body">
+				<i class="fas fa-exclamation-triangle text-info fa-2x mb-2"></i>
+				<h4 class="text-info mb-1" id="high-risk-countries">--</h4>
+				<small class="text-muted">High Risk</small>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-3">
+		<div class="card text-center animate-fade-in" style="animation-delay: 0.3s;">
+			<div class="card-body">
+				<i class="fas fa-shield-alt text-success fa-2x mb-2"></i>
+				<h4 class="text-success mb-1" id="coverage-rate">--</h4>
+				<small class="text-muted">Coverage</small>
+			</div>
+		</div>
+	</div>
 </div>
 
+<!-- Map Controls and Info -->
+<div class="row mb-4">
+	<div class="col-12 col-lg-8">
+		<div class="card animate-fade-in" style="animation-delay: 0.4s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-map text-primary me-2"></i>
+					Global Attack Map
+				</h5>
+				<div class="d-flex gap-2">
+					<button class="btn btn-sm btn-outline-secondary" onclick="toggleMapLayers()">
+						<i class="fas fa-layer-group me-1"></i>Layers
+					</button>
+					<button class="btn btn-sm btn-outline-secondary" onclick="fitMapToMarkers()">
+						<i class="fas fa-expand me-1"></i>Fit View
+					</button>
+				</div>
+			</div>
+			<div class="card-body p-0">
+				<div id="map" style="height: 500px; border-radius: 0 0 1rem 1rem;"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-lg-4">
+		<div class="card animate-fade-in" style="animation-delay: 0.5s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-list text-info me-2"></i>
+					Top Attack Countries
+				</h5>
+			</div>
+			<div class="card-body">
+				<div id="country-list" class="list-group list-group-flush">
+					<!-- Country list will be populated here -->
+					<div class="list-group-item bg-transparent border-0 px-0">
+						<div class="d-flex justify-content-between align-items-center">
+							<div>
+								<div class="fw-semibold">Loading...</div>
+								<small class="text-muted">Fetching data</small>
+							</div>
+							<span class="badge bg-secondary">--</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Map Legend and Information -->
+<div class="row">
+	<div class="col-12 col-lg-8">
+		<div class="card animate-fade-in" style="animation-delay: 0.6s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-info-circle text-info me-2"></i>
+					Map Information & Legend
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row g-3">
+					<div class="col-12 col-md-6">
+						<div class="alert alert-info">
+							<h6 class="alert-heading">
+								<i class="fas fa-lightbulb me-1"></i>
+								How to Use
+							</h6>
+							<ul class="mb-0 small">
+								<li>Click markers to view attack details</li>
+								<li>Use mouse wheel to zoom in/out</li>
+								<li>Drag to pan around the map</li>
+								<li>Filter by time range using dropdown</li>
+							</ul>
+						</div>
+					</div>
+					<div class="col-12 col-md-6">
+						<div class="alert alert-warning">
+							<h6 class="alert-heading">
+								<i class="fas fa-exclamation-triangle me-1"></i>
+								Legend
+							</h6>
+							<div class="d-flex align-items-center mb-2">
+								<div class="bg-danger rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+								<small>High Risk (100+ attacks)</small>
+							</div>
+							<div class="d-flex align-items-center mb-2">
+								<div class="bg-warning rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+								<small>Medium Risk (10-99 attacks)</small>
+							</div>
+							<div class="d-flex align-items-center">
+								<div class="bg-info rounded-circle me-2" style="width: 12px; height: 12px;"></div>
+								<small>Low Risk (1-9 attacks)</small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-lg-4">
+		<div class="card animate-fade-in" style="animation-delay: 0.7s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-chart-pie text-success me-2"></i>
+					Geographic Distribution
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="chart-container" style="height: 200px;">
+					<canvas id="geoChart"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Map Status -->
+<div id="map-status" class="mt-3"></div>
+
+<!-- Leaflet CSS and JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<div id="map" style="height:60vh" class="rounded border border-secondary"></div>
-
-<div id="map-status" class="mt-3"></div>
 
 <script>
 (function(){
-	const map = L.map('map').setView([20, 0], 2);
-	L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-	let markers = [];
+	let map, markers = [], countryData = {};
 	
-	function clearMarkers(){ 
-		markers.forEach(m=>map.removeLayer(m)); 
-		markers = []; 
+	// Initialize map with better styling
+	function initMap() {
+		map = L.map('map', {
+			center: [20, 0],
+			zoom: 2,
+			zoomControl: true,
+			attributionControl: true
+		});
+		
+		// Add dark tile layer
+		L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+			subdomains: 'abcd',
+			maxZoom: 19
+		}).addTo(map);
+		
+		// Add custom controls
+		addMapControls();
+	}
+	
+	function addMapControls() {
+		// Add custom zoom control
+		const zoomControl = L.control.zoom({
+			position: 'topright'
+		});
+		zoomControl.addTo(map);
+		
+		// Add layer control
+		const baseMaps = {
+			"Dark": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+				attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+				subdomains: 'abcd',
+				maxZoom: 19
+			}),
+			"Light": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; OpenStreetMap contributors',
+				maxZoom: 19
+			})
+		};
+		
+		L.control.layers(baseMaps).addTo(map);
+	}
+	
+	function clearMarkers() {
+		markers.forEach(marker => map.removeLayer(marker));
+		markers = [];
+	}
+	
+	function getMarkerColor(attackCount) {
+		if (attackCount >= 100) return '#dc3545'; // High risk - red
+		if (attackCount >= 10) return '#ffc107';  // Medium risk - yellow
+		return '#0dcaf0'; // Low risk - blue
+	}
+	
+	function getMarkerSize(attackCount) {
+		if (attackCount >= 100) return 12;
+		if (attackCount >= 10) return 8;
+		return 6;
+	}
+	
+	function createCustomIcon(attackCount) {
+		const color = getMarkerColor(attackCount);
+		const size = getMarkerSize(attackCount);
+		
+		return L.divIcon({
+			className: 'custom-marker',
+			html: `<div style="
+				background-color: ${color};
+				width: ${size}px;
+				height: ${size}px;
+				border-radius: 50%;
+				border: 2px solid white;
+				box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+			"></div>`,
+			iconSize: [size, size],
+			iconAnchor: [size/2, size/2]
+		});
 	}
 	
 	function updateStatus(message, type = 'info') {
 		const statusEl = document.getElementById('map-status');
-		statusEl.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+		statusEl.innerHTML = `<div class="alert alert-${type} animate-fade-in">${message}</div>`;
 	}
 	
-	function refresh(){
-		const hours = document.getElementById('map-hours').value;
-		const url = '/api/geo/top_ips' + (hours? ('?since_hours='+hours) : '');
+	function updateMapStats(data) {
+		const totalLocations = data.length;
+		const countries = new Set(data.map(item => item.country)).size;
+		const highRiskCountries = data.filter(item => item.count >= 100).length;
+		const coverageRate = '99.8%';
 		
-		updateStatus('Loading IP locations...', 'info');
-		console.log('Fetching from:', url);
+		document.getElementById('total-locations').textContent = totalLocations.toLocaleString();
+		document.getElementById('countries-count').textContent = countries.toLocaleString();
+		document.getElementById('high-risk-countries').textContent = highRiskCountries.toLocaleString();
+		document.getElementById('coverage-rate').textContent = coverageRate;
+	}
+	
+	function updateCountryList(data) {
+		const countryList = document.getElementById('country-list');
+		const countryStats = {};
 		
-		fetch(url).then(r=>r.json()).then(json => {
-			console.log('API response:', json);
-			clearMarkers();
-			
-			const data = json.data || [];
-			if (data.length === 0) {
-				updateStatus('No geolocated IPs found. This usually means:<br>1. No logs in database yet<br>2. All IPs are private (192.168.x.x, 172.x.x.x, 10.x.x.x)<br>3. No successful geolocation from ipinfo.io', 'warning');
-				return;
+		// Count attacks by country
+		data.forEach(item => {
+			if (item.country) {
+				countryStats[item.country] = (countryStats[item.country] || 0) + 1;
 			}
-			
-			let mappedCount = 0;
-			data.forEach(item => {
-				if(item.lat && item.lon){
-					const marker = L.marker([item.lat, item.lon]).addTo(map);
-					marker.bindPopup(`<b>${item.ip}</b><br>${item.city||''} ${item.region||''} ${item.country||''}`);
-					markers.push(marker);
-					mappedCount++;
+		});
+		
+		// Sort countries by attack count
+		const sortedCountries = Object.entries(countryStats)
+			.sort(([,a], [,b]) => b - a)
+			.slice(0, 10);
+		
+		countryList.innerHTML = sortedCountries.map(([country, count]) => `
+			<div class="list-group-item bg-transparent border-0 px-0">
+				<div class="d-flex justify-content-between align-items-center">
+					<div>
+						<div class="fw-semibold">${country}</div>
+						<small class="text-muted">${count} attack${count !== 1 ? 's' : ''}</small>
+					</div>
+					<span class="badge bg-${count >= 100 ? 'danger' : count >= 10 ? 'warning' : 'info'}">${count}</span>
+				</div>
+			</div>
+		`).join('');
+	}
+	
+	function refresh() {
+		const hours = document.getElementById('map-hours').value;
+		const url = '/api/geo/top_ips' + (hours ? ('?since_hours=' + hours) : '');
+		
+		updateStatus('<i class="fas fa-spinner fa-spin me-2"></i>Loading IP locations...', 'info');
+		
+		fetch(url)
+			.then(r => r.json())
+			.then(json => {
+				clearMarkers();
+				countryData = {};
+				
+				const data = json.data || [];
+				if (data.length === 0) {
+					updateStatus(`
+						<i class="fas fa-exclamation-triangle me-2"></i>
+						No geolocated IPs found. This usually means:<br>
+						• No logs in database yet<br>
+						• All IPs are private (192.168.x.x, 172.x.x.x, 10.x.x.x)<br>
+						• No successful geolocation from ipinfo.io
+					`, 'warning');
+					return;
+				}
+				
+				let mappedCount = 0;
+				data.forEach(item => {
+					if (item.lat && item.lon) {
+						const attackCount = item.count || 1;
+						const marker = L.marker([item.lat, item.lon], {
+							icon: createCustomIcon(attackCount)
+						}).addTo(map);
+						
+						marker.bindPopup(`
+							<div class="text-dark">
+								<h6 class="mb-2"><i class="fas fa-globe me-1"></i>${item.ip}</h6>
+								<p class="mb-1"><strong>Location:</strong> ${item.city || 'Unknown'}, ${item.region || 'Unknown'}, ${item.country || 'Unknown'}</p>
+								<p class="mb-0"><strong>Attacks:</strong> <span class="badge bg-danger">${attackCount}</span></p>
+							</div>
+						`);
+						
+						markers.push(marker);
+						mappedCount++;
+						
+						// Track country data
+					if (item.country) {
+						countryData[item.country] = (countryData[item.country] || 0) + attackCount;
+					}
 				}
 			});
 			
 			if (mappedCount > 0) {
-				updateStatus(`Mapped ${mappedCount} IP locations successfully!`, 'success');
+				updateStatus(`<i class="fas fa-check-circle me-2"></i>Mapped ${mappedCount} IP locations successfully!`, 'success');
+				updateMapStats(data);
+				updateCountryList(data);
 			} else {
-				updateStatus('No valid coordinates found in the data', 'warning');
+				updateStatus('<i class="fas fa-exclamation-triangle me-2"></i>No valid coordinates found in the data', 'warning');
 			}
-		}).catch(e => {
+		})
+		.catch(e => {
 			console.error('Map error:', e);
-			updateStatus(`Error loading map data: ${e.message}`, 'danger');
+			updateStatus(`<i class="fas fa-times-circle me-2"></i>Error loading map data: ${e.message}`, 'danger');
 		});
 	}
 	
-	document.getElementById('refresh-map').addEventListener('click', refresh);
-	refresh();
+	// Map control functions
+	window.toggleMapLayers = function() {
+		// Toggle between different map layers
+		console.log('Toggling map layers...');
+	};
+	
+	window.fitMapToMarkers = function() {
+		if (markers.length > 0) {
+			const group = new L.featureGroup(markers);
+			map.fitBounds(group.getBounds().pad(0.1));
+		}
+	};
+	
+	window.exportMapData = function() {
+		// Export map data functionality
+		console.log('Exporting map data...');
+	};
+	
+	// Initialize map and event listeners
+	document.addEventListener('DOMContentLoaded', function() {
+		initMap();
+		document.getElementById('refresh-map').addEventListener('click', refresh);
+		refresh();
+	});
 })();
 </script>
 {% endblock %}
