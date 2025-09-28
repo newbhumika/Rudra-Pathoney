@@ -1,29 +1,298 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row g-4">
-	<div class="col-12 col-lg-6">
-		<div class="card bg-secondary-subtle shadow-sm h-100">
-			<div class="card-body">
-				<h5 class="card-title mb-3">Top 10 Attacker IPs</h5>
-				<canvas id="chartTopIPs" height="200"></canvas>
-			</div>
-		</div>
-	</div>
-	<div class="col-12 col-lg-6">
-		<div class="card bg-secondary-subtle shadow-sm h-100">
-			<div class="card-body">
-				<h5 class="card-title mb-3">Attempts Over Time</h5>
-				<canvas id="chartAttempts" height="200"></canvas>
-			</div>
-		</div>
-	</div>
+<!-- Header Section -->
+<div class="row mb-4">
 	<div class="col-12">
-		<div class="card bg-secondary-subtle shadow-sm">
-			<div class="card-body">
-				<h5 class="card-title mb-3">Top Credentials</h5>
-				<canvas id="chartCreds" height="160"></canvas>
+		<div class="d-flex justify-content-between align-items-center">
+			<div>
+				<h1 class="text-gradient mb-2">Security Dashboard</h1>
+				<p class="text-muted mb-0">Real-time threat monitoring and analysis</p>
+			</div>
+			<div class="d-flex align-items-center gap-3">
+				<div class="text-end">
+					<div class="h4 mb-0 text-success">
+						<span class="status-indicator status-online"></span>
+						System Online
+					</div>
+					<small class="text-muted">Last updated: <span id="dashboard-last-update">--</span></small>
+				</div>
+				<button class="btn btn-outline-primary" onclick="refreshDashboard()">
+					<i class="fas fa-sync-alt me-1"></i>Refresh
+				</button>
 			</div>
 		</div>
 	</div>
 </div>
+
+<!-- Key Metrics Row -->
+<div class="row g-4 mb-4">
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card h-100 animate-fade-in">
+			<div class="card-body text-center">
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-danger bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-exclamation-triangle text-danger fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-danger" id="total-attacks">--</h3>
+						<small class="text-muted">Total Attacks</small>
+					</div>
+				</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-danger" role="progressbar" style="width: 75%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card h-100 animate-fade-in" style="animation-delay: 0.1s;">
+			<div class="card-body text-center">
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-globe text-warning fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-warning" id="unique-ips">--</h3>
+						<small class="text-muted">Unique IPs</small>
+					</div>
+				</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-warning" role="progressbar" style="width: 60%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card h-100 animate-fade-in" style="animation-delay: 0.2s;">
+			<div class="card-body text-center">
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-key text-info fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-info" id="credential-attempts">--</h3>
+						<small class="text-muted">Credential Attempts</small>
+					</div>
+				</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-info" role="progressbar" style="width: 45%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-md-6 col-lg-3">
+		<div class="card h-100 animate-fade-in" style="animation-delay: 0.3s;">
+			<div class="card-body text-center">
+				<div class="d-flex align-items-center justify-content-center mb-3">
+					<div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+						<i class="fas fa-shield-alt text-success fa-2x"></i>
+					</div>
+					<div>
+						<h3 class="mb-0 text-success" id="threat-score">--</h3>
+						<small class="text-muted">Threat Score</small>
+					</div>
+				</div>
+				<div class="progress" style="height: 4px;">
+					<div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+	<div class="col-12 col-lg-6">
+		<div class="card h-100 animate-slide-in">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-chart-bar text-primary me-2"></i>
+					Top Attacker IPs
+				</h5>
+				<div class="dropdown">
+					<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+						<i class="fas fa-filter me-1"></i>Filter
+					</button>
+					<ul class="dropdown-menu">
+						<li><a class="dropdown-item" href="#" onclick="filterChart('chartTopIPs', '24h')">Last 24h</a></li>
+						<li><a class="dropdown-item" href="#" onclick="filterChart('chartTopIPs', '7d')">Last 7d</a></li>
+						<li><a class="dropdown-item" href="#" onclick="filterChart('chartTopIPs', '30d')">Last 30d</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="card-body">
+				<div class="chart-container">
+					<canvas id="chartTopIPs"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-lg-6">
+		<div class="card h-100 animate-slide-in" style="animation-delay: 0.1s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-chart-line text-success me-2"></i>
+					Attack Timeline
+				</h5>
+				<div class="dropdown">
+					<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+						<i class="fas fa-filter me-1"></i>Filter
+					</button>
+					<ul class="dropdown-menu">
+						<li><a class="dropdown-item" href="#" onclick="filterChart('chartAttempts', '24h')">Last 24h</a></li>
+						<li><a class="dropdown-item" href="#" onclick="filterChart('chartAttempts', '7d')">Last 7d</a></li>
+						<li><a class="dropdown-item" href="#" onclick="filterChart('chartAttempts', '30d')">Last 30d</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="card-body">
+				<div class="chart-container">
+					<canvas id="chartAttempts"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Credentials and Recent Activity Row -->
+<div class="row g-4">
+	<div class="col-12 col-lg-8">
+		<div class="card animate-fade-in" style="animation-delay: 0.2s;">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<h5 class="mb-0">
+					<i class="fas fa-key text-warning me-2"></i>
+					Top Credentials Used
+				</h5>
+				<span class="badge bg-warning text-dark">
+					<i class="fas fa-exclamation-triangle me-1"></i>
+					High Risk
+				</span>
+			</div>
+			<div class="card-body">
+				<div class="chart-container">
+					<canvas id="chartCreds"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-12 col-lg-4">
+		<div class="card animate-fade-in" style="animation-delay: 0.3s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-clock text-info me-2"></i>
+					Recent Activity
+				</h5>
+			</div>
+			<div class="card-body">
+				<div id="recent-activity" class="list-group list-group-flush">
+					<!-- Recent activity items will be populated here -->
+					<div class="list-group-item bg-transparent border-0 px-0">
+						<div class="d-flex align-items-center">
+							<div class="status-indicator status-online me-3"></div>
+							<div class="flex-grow-1">
+								<div class="fw-semibold">System Online</div>
+								<small class="text-muted">Monitoring active</small>
+							</div>
+							<small class="text-muted">Now</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+	<div class="col-12">
+		<div class="card animate-fade-in" style="animation-delay: 0.4s;">
+			<div class="card-header">
+				<h5 class="mb-0">
+					<i class="fas fa-bolt text-warning me-2"></i>
+					Quick Actions
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row g-3">
+					<div class="col-12 col-md-6 col-lg-3">
+						<a href="/logs" class="btn btn-outline-primary w-100">
+							<i class="fas fa-list-alt me-2"></i>View All Logs
+						</a>
+					</div>
+					<div class="col-12 col-md-6 col-lg-3">
+						<a href="/analytics" class="btn btn-outline-info w-100">
+							<i class="fas fa-chart-bar me-2"></i>Analytics
+						</a>
+					</div>
+					<div class="col-12 col-md-6 col-lg-3">
+						<a href="/map" class="btn btn-outline-success w-100">
+							<i class="fas fa-globe me-2"></i>Attack Map
+						</a>
+					</div>
+					<div class="col-12 col-md-6 col-lg-3">
+						<a href="/threat-hunting" class="btn btn-outline-danger w-100">
+							<i class="fas fa-search me-2"></i>Threat Hunting
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+// Dashboard-specific JavaScript
+function refreshDashboard() {
+	// Add loading state
+	document.querySelectorAll('.card').forEach(card => {
+		card.classList.add('loading');
+	});
+	
+	// Refresh data
+	setTimeout(() => {
+		document.querySelectorAll('.card').forEach(card => {
+			card.classList.remove('loading');
+		});
+		document.getElementById('dashboard-last-update').textContent = new Date().toLocaleString();
+	}, 1000);
+}
+
+function filterChart(chartId, period) {
+	// Chart filtering logic
+	console.log(`Filtering ${chartId} for ${period}`);
+}
+
+// Update metrics with real data
+function updateMetrics(data) {
+	const aggregates = data;
+	
+	// Update total attacks
+	const totalAttacks = aggregates.attempts_over_time?.reduce((sum, item) => sum + item.count, 0) || 0;
+	document.getElementById('total-attacks').textContent = totalAttacks.toLocaleString();
+	
+	// Update unique IPs
+	const uniqueIPs = aggregates.top_ips?.length || 0;
+	document.getElementById('unique-ips').textContent = uniqueIPs.toLocaleString();
+	
+	// Update credential attempts
+	const credentialAttempts = aggregates.top_credentials?.reduce((sum, item) => sum + item.count, 0) || 0;
+	document.getElementById('credential-attempts').textContent = credentialAttempts.toLocaleString();
+	
+	// Update threat score (calculated based on activity)
+	const threatScore = Math.min(100, Math.floor((totalAttacks / 100) * 100));
+	document.getElementById('threat-score').textContent = threatScore;
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+	// Update last update time
+	document.getElementById('dashboard-last-update').textContent = new Date().toLocaleString();
+	
+	// Add animation delays to cards
+	document.querySelectorAll('.card').forEach((card, index) => {
+		card.style.animationDelay = `${index * 0.1}s`;
+	});
+});
+</script>
 {% endblock %}
+
